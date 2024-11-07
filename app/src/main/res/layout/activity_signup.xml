@@ -13,15 +13,19 @@
     android:background="#FFFFFF"
     android:padding="24dp">
 
-    <!-- Logo Placeholder -->
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
+    <TextView
+        android:id="@+id/appTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="40dp"
-        android:contentDescription="App Logo"
-        android:background="#CCCCCC" />
+        android:fontFamily="@font/inter_extrabold"
+        android:text="Byft"
+        android:textColor="#000000"
+        android:textSize="28sp"
+        android:gravity="center" />
+
+    <!-- Profile Picture Container -->
 
     <!-- Title -->
     <TextView
@@ -35,6 +39,42 @@
         android:textColor="#000000"
         android:textSize="24sp"
         android:textStyle="bold" />
+
+    <FrameLayout
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp">
+
+        <!-- Circular Profile Image -->
+        <ImageView
+            android:id="@+id/profileImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="Profile Picture"
+            android:scaleType="centerCrop"
+            android:background="@drawable/circular_background" />
+
+        <!-- Camera Icon for Upload Profile Picture -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="4dp">
+
+            <ImageView
+                android:id="@+id/uploadIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/camera"
+                android:contentDescription="Upload Icon"
+                android:background="@drawable/circular_icon_background"
+                android:padding="4dp" />
+        </FrameLayout>
+    </FrameLayout>
+
+
+
 
     <!-- Name Input with Icon -->
     <LinearLayout
@@ -125,7 +165,7 @@
             android:inputType="phone" />
     </LinearLayout>
 
-    <!-- Password Input with Icon -->
+    <!-- Password Input with Icon and View Toggle -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -153,13 +193,65 @@
             android:textColorHint="#808080"
             android:padding="12dp"
             android:inputType="textPassword" />
+
+        <!-- View Password Icon -->
+        <ImageView
+            android:id="@+id/viewPasswordIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/eye"
+            android:contentDescription="View Password Icon"
+            android:padding="4dp" />
+    </LinearLayout>
+
+    <!-- Confirm Password Input with Icon and View Toggle -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/confirmPasswordIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/password"
+            android:contentDescription="Confirm Password Icon" />
+
+        <EditText
+            android:id="@+id/inputConfirmPassword"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:hint="Confirm Password"
+            android:fontFamily="@font/inter"
+            android:backgroundTint="#000000"
+            android:textColor="#000000"
+            android:textColorHint="#808080"
+            android:padding="12dp"
+            android:inputType="textPassword" />
+
+        <!-- View Confirm Password Icon -->
+        <ImageView
+            android:id="@+id/viewConfirmPasswordIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/eye"
+            android:contentDescription="View Confirm Password Icon"
+            android:padding="4dp" />
     </LinearLayout>
 
     <!-- Register Button -->
     <Button
         android:id="@+id/registerButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:layout_marginTop="24dp"
         android:backgroundTint="#000002"
         android:fontFamily="@font/inter"
