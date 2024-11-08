@@ -8,7 +8,7 @@ import androidx.annotation.Nullable;
 
 public class DBManager extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "mydatabase.db";
+    private static final String DATABASE_NAME = "byft.db";
     private static final int DATABASE_VERSION = 1;
 
     public DBManager(Context context) {
