@@ -70,4 +70,19 @@ public class DatabaseHelper extends SQLiteOpenHelper
         db.close();
         return exists;
     }
+
+    public boolean checkUserLogin(String email, String password)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM users WHERE email = ? AND password = ?", new String[]{email, password});
+
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.close();
+            return true; // Credentials matched
+        } else {
+            if (cursor != null) cursor.close();
+            return false; // Credentials not found
+        }
+    }
+
 }

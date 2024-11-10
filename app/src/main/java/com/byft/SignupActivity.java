@@ -83,7 +83,7 @@ public class SignupActivity extends AppCompatActivity {
         if (success) {
             Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
             // Redirect to another activity (e.g., LoginActivity)
-            Intent intent = new Intent(this,SignInActivity.class); // Change LoginActivity to your desired next screen
+            Intent intent = new Intent(this, SigninActivity.class); // Change LoginActivity to your desired next screen
             startActivity(intent);
             finish(); // Optionally finish the current activity
         } else {

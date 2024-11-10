@@ -23,6 +23,7 @@
         </activity>
 
         <activity android:name=".SignupActivity" android:exported="true"/>
+        <activity android:name=".SigninActivity" android:exported="true"/>
     </application>
 
 </manifest>
