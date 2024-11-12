@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -33,6 +34,7 @@ public class SignupActivity extends AppCompatActivity {
     private Button registerButton;
     private ImageView uploadIcon, profileImage;
     private DatabaseHelper databaseHelper;
+    private TextView signInText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +50,7 @@ public class SignupActivity extends AppCompatActivity {
         registerButton = findViewById(R.id.registerButton);
         profileImage = findViewById(R.id.profileImage);
         uploadIcon = findViewById(R.id.uploadIcon);
+        signInText = findViewById(R.id.signInText);
 
         // Initialize database helper
         databaseHelper = new DatabaseHelper(this);
@@ -69,6 +72,15 @@ public class SignupActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 registerUser();
+            }
+        });
+
+        // Sign In text click listener to redirect to Sign In Activity
+        signInText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //back to sign in activity
+                finish();
             }
         });
     }
