@@ -9,9 +9,21 @@
     </string-array>
 
     <string-array name="sri_lankan_routes">
-        <item>Colombo to Kandy</item>
-        <item>Kandy to Galle</item>
-        <item>Matara to Jaffna</item>
+        <item>Colombo</item>
+        <item>Kandy</item>
+        <item>Matara</item>
+        <item>Galle</item>
+        <item>Kattunayke</item>
+    </string-array>
+
+    <string-array name="days_of_week">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
     </string-array>
 
 </resources>

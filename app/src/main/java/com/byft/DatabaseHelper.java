@@ -14,9 +14,10 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "UserDatabase.db";
-    private static final int DATABASE_VERSION = 4; // Incremented version
+    private static final int DATABASE_VERSION = 6; // Incremented version
     private static final String TABLE_USERS = "users";
-    private static final String TABLE_BUS = "Bus"; // New table
+    private static final String TABLE_BUS = "Bus";
+    private static final String TABLE_BUS_SCHEDULE = "BusSchedule"; // New table
 
     // Columns for users table
     private static final String COLUMN_ID = "id";
@@ -31,8 +32,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_BUS_NUMBER = "busNumber";
     private static final String COLUMN_BUS_OWNER_ID = "busownerID";
     private static final String COLUMN_BUS_SEATS = "busSeats";
-    private static final String COLUMN_ROUTE = "route";
     private static final String COLUMN_DEPARTURE_INTERVAL = "departureInterval";
+
+    // Columns for bus schedule table
+    private static final String COLUMN_SCHEDULE_ID = "scheduleID";
+    private static final String COLUMN_SCHEDULE_BUS_NUMBER = "busNumber";
+    private static final String COLUMN_DAY = "day";
+    private static final String COLUMN_TRIP_TIME = "tripTime";
+    private static final String COLUMN_TRIP_DIRECTION = "tripDirection";
+    private static final String COLUMN_START_LOCATION = "startLocation";
+    private static final String COLUMN_END_LOCATION = "endLocation";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -54,9 +63,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_BUS_NUMBER + " VARCHAR(20) PRIMARY KEY, " +
                 COLUMN_BUS_OWNER_ID + " INTEGER, " +
                 COLUMN_BUS_SEATS + " INTEGER, " +
-                COLUMN_ROUTE + " TEXT, " +
                 COLUMN_DEPARTURE_INTERVAL + " INTEGER)";
         db.execSQL(createBusTable);
+
+        String createBusScheduleTable = "CREATE TABLE " + TABLE_BUS_SCHEDULE + " (" +
+                COLUMN_SCHEDULE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_SCHEDULE_BUS_NUMBER + " VARCHAR(20), " +
+                COLUMN_DAY + " TEXT, " +
+                COLUMN_TRIP_TIME + " TEXT, " +
+                COLUMN_TRIP_DIRECTION + " TEXT, " +
+                COLUMN_START_LOCATION + " TEXT, " +
+                COLUMN_END_LOCATION + " TEXT, " +
+                "FOREIGN KEY(" + COLUMN_SCHEDULE_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "))";
+        db.execSQL(createBusScheduleTable);
     }
 
     @Override
@@ -65,7 +84,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COLUMN_USER_TYPE + " TEXT");
         }
         if (oldVersion < 3) {
-            db.execSQL("ALTER TABLE " + TABLE_BUS + " ADD COLUMN " + COLUMN_ROUTE + " TEXT");
             db.execSQL("ALTER TABLE " + TABLE_BUS + " ADD COLUMN " + COLUMN_DEPARTURE_INTERVAL + " INTEGER");
         }
         if (oldVersion < 4) {
@@ -73,8 +91,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_BUS_NUMBER + " VARCHAR(20) PRIMARY KEY, " +
                     COLUMN_BUS_OWNER_ID + " INTEGER, " +
                     COLUMN_BUS_SEATS + " INTEGER, " +
-                    COLUMN_ROUTE + " TEXT, " +
                     COLUMN_DEPARTURE_INTERVAL + " INTEGER)");
+        }
+        if (oldVersion < 5) {
+            String createBusScheduleTable = "CREATE TABLE " + TABLE_BUS_SCHEDULE + " (" +
+                    COLUMN_SCHEDULE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_SCHEDULE_BUS_NUMBER + " VARCHAR(20), " +
+                    COLUMN_DAY + " TEXT, " +
+                    COLUMN_TRIP_TIME + " TEXT, " +
+                    COLUMN_TRIP_DIRECTION + " TEXT, " +
+                    "FOREIGN KEY(" + COLUMN_SCHEDULE_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "))";
+            db.execSQL(createBusScheduleTable);
+        }
+        if (oldVersion < 6) {
+            db.execSQL("ALTER TABLE " + TABLE_BUS_SCHEDULE + " ADD COLUMN " + COLUMN_START_LOCATION + " TEXT");
+            db.execSQL("ALTER TABLE " + TABLE_BUS_SCHEDULE + " ADD COLUMN " + COLUMN_END_LOCATION + " TEXT");
         }
     }
 
@@ -177,19 +208,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return drivers;
     }
 
-    public boolean insertBus(String busNumber, int busSeats, String driver, String route, int departureInterval) {
+    public boolean insertBus(String busNumber, int busSeats, String driver) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_BUS_NUMBER, busNumber);
         values.put(COLUMN_BUS_SEATS, busSeats);
         values.put(COLUMN_BUS_OWNER_ID, driver); // Assuming driver is the bus owner ID
-        values.put(COLUMN_ROUTE, route);
-        values.put(COLUMN_DEPARTURE_INTERVAL, departureInterval);
+
 
         long result = db.insert(TABLE_BUS, null, values);
         db.close();
         return result != -1;
     }
+
+    public boolean insertBusSchedule(String busNumber, String day, String tripTime, String startLocation, String endLocation) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_SCHEDULE_BUS_NUMBER, busNumber);
+        values.put(COLUMN_DAY, day);
+        values.put(COLUMN_TRIP_TIME, tripTime);
+        values.put(COLUMN_START_LOCATION, startLocation);
+        values.put(COLUMN_END_LOCATION, endLocation);
+
+        long result = db.insert(TABLE_BUS_SCHEDULE, null, values);
+        db.close();
+        return result != -1;
+    }
+
     public boolean isBusNumberExists(String busNumber) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_BUS, new String[]{COLUMN_BUS_NUMBER}, COLUMN_BUS_NUMBER + "=?", new String[]{busNumber}, null, null, null);
