@@ -33,7 +33,7 @@
         <activity android:name=".SignupActivity" android:exported="true"/>
         <activity android:name=".SigninActivity" android:exported="true"/>
         <activity android:name=".HomeActivity" android:exported="true"/>
-
+        <activity android:name=".Owner_RegisterBusActivity" android:exported="true"/>
     </application>
 
 </manifest>

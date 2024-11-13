@@ -21,6 +21,7 @@ public class HomeActivity extends AppCompatActivity {
     private LinearLayout requestSwapSeatButton;
     private LinearLayout manageBusButton;
     private LinearLayout tripsButton;
+    private LinearLayout viewBusDetailsButton;
     private DatabaseHelper databaseHelper;
     private TextView textUsername;
     private ImageView profileImage;
@@ -59,6 +60,7 @@ public class HomeActivity extends AppCompatActivity {
         requestSwapSeatButton = findViewById(R.id.swap_seats_button);
 
         // Driver
+        viewBusDetailsButton = findViewById(R.id.view_bus_details_button);
         tripsButton = findViewById(R.id.trips_button);
 
         // Bus Owner
@@ -82,8 +84,19 @@ public class HomeActivity extends AppCompatActivity {
         }
         else if ("BUS DRIVER".equalsIgnoreCase(role))
         {
+            viewBusDetailsButton.setVisibility(View.VISIBLE);
             tripsButton.setVisibility(View.VISIBLE);
             supportButton.setVisibility(View.VISIBLE);
         }
+
+        registerBusButton = findViewById(R.id.register_bus_button);
+        registerBusButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, Owner_RegisterBusActivity.class);
+                startActivity(intent);
+            }
+        });
     }
+
 }

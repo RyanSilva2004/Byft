@@ -8,13 +8,17 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "UserDatabase.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 4; // Incremented version
     private static final String TABLE_USERS = "users";
+    private static final String TABLE_BUS = "Bus"; // New table
 
-    // Columns
+    // Columns for users table
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_EMAIL = "email";
@@ -23,27 +27,54 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_PROFILE_IMAGE = "profile_image";
     private static final String COLUMN_USER_TYPE = "user_type";
 
+    // Columns for bus table
+    private static final String COLUMN_BUS_NUMBER = "busNumber";
+    private static final String COLUMN_BUS_OWNER_ID = "busownerID";
+    private static final String COLUMN_BUS_SEATS = "busSeats";
+    private static final String COLUMN_ROUTE = "route";
+    private static final String COLUMN_DEPARTURE_INTERVAL = "departureInterval";
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String createTable = "CREATE TABLE " + TABLE_USERS + " (" +
+        String createUsersTable = "CREATE TABLE " + TABLE_USERS + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_EMAIL + " TEXT, " +
                 COLUMN_PHONE + " TEXT, " +
                 COLUMN_PASSWORD + " TEXT, " +
                 COLUMN_PROFILE_IMAGE + " BLOB, " +
-                COLUMN_USER_TYPE + " TEXT)";  // Added new column in the table creation
-        db.execSQL(createTable);
+                COLUMN_USER_TYPE + " TEXT)";
+        db.execSQL(createUsersTable);
+
+        String createBusTable = "CREATE TABLE " + TABLE_BUS + " (" +
+                COLUMN_BUS_NUMBER + " VARCHAR(20) PRIMARY KEY, " +
+                COLUMN_BUS_OWNER_ID + " INTEGER, " +
+                COLUMN_BUS_SEATS + " INTEGER, " +
+                COLUMN_ROUTE + " TEXT, " +
+                COLUMN_DEPARTURE_INTERVAL + " INTEGER)";
+        db.execSQL(createBusTable);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COLUMN_USER_TYPE + " TEXT");
+        }
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE " + TABLE_BUS + " ADD COLUMN " + COLUMN_ROUTE + " TEXT");
+            db.execSQL("ALTER TABLE " + TABLE_BUS + " ADD COLUMN " + COLUMN_DEPARTURE_INTERVAL + " INTEGER");
+        }
+        if (oldVersion < 4) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_BUS + " (" +
+                    COLUMN_BUS_NUMBER + " VARCHAR(20) PRIMARY KEY, " +
+                    COLUMN_BUS_OWNER_ID + " INTEGER, " +
+                    COLUMN_BUS_SEATS + " INTEGER, " +
+                    COLUMN_ROUTE + " TEXT, " +
+                    COLUMN_DEPARTURE_INTERVAL + " INTEGER)");
         }
     }
 
@@ -129,5 +160,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         db.close();
         return profileImage;
+    }
+
+    public List<String> getDrivers() {
+        List<String> drivers = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_NAME + " FROM " + TABLE_USERS + " WHERE " + COLUMN_USER_TYPE + " = ?", new String[]{"Bus driver"});
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                drivers.add(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME)));
+            }
+            cursor.close();
+        }
+        db.close();
+        return drivers;
+    }
+
+    public boolean insertBus(String busNumber, int busSeats, String driver, String route, int departureInterval) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_BUS_NUMBER, busNumber);
+        values.put(COLUMN_BUS_SEATS, busSeats);
+        values.put(COLUMN_BUS_OWNER_ID, driver); // Assuming driver is the bus owner ID
+        values.put(COLUMN_ROUTE, route);
+        values.put(COLUMN_DEPARTURE_INTERVAL, departureInterval);
+
+        long result = db.insert(TABLE_BUS, null, values);
+        db.close();
+        return result != -1;
+    }
+    public boolean isBusNumberExists(String busNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_BUS, new String[]{COLUMN_BUS_NUMBER}, COLUMN_BUS_NUMBER + "=?", new String[]{busNumber}, null, null, null);
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        db.close();
+        return exists;
     }
 }
