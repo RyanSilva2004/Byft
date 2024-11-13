@@ -88,4 +88,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return false;
         }
     }
+
+    public String getUserRole(String email, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String role = null;
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_USER_TYPE + " FROM " + TABLE_USERS + " WHERE " +
+                COLUMN_EMAIL + " = ? AND " + COLUMN_PASSWORD + " = ?", new String[]{email, password});
+
+        if (cursor != null && cursor.moveToFirst()) {
+            role = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_TYPE));
+            cursor.close();
+        }
+        db.close();
+        return role;
+    }
+
+    public String getUserName(String email, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String name = null;
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_NAME + " FROM " + TABLE_USERS + " WHERE " +
+                COLUMN_EMAIL + " = ? AND " + COLUMN_PASSWORD + " = ?", new String[]{email, password});
+
+        if (cursor != null && cursor.moveToFirst()) {
+            name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME));
+            cursor.close();
+        }
+        db.close();
+        return name;
+    }
+
+    public byte[] getUserProfileImage(String email, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        byte[] profileImage = null;
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_PROFILE_IMAGE + " FROM " + TABLE_USERS + " WHERE " +
+                COLUMN_EMAIL + " = ? AND " + COLUMN_PASSWORD + " = ?", new String[]{email, password});
+
+        if (cursor != null && cursor.moveToFirst()) {
+            profileImage = cursor.getBlob(cursor.getColumnIndexOrThrow(COLUMN_PROFILE_IMAGE));
+            cursor.close();
+        }
+        db.close();
+        return profileImage;
+    }
 }

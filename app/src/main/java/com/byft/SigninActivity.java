@@ -90,10 +90,14 @@ public class SigninActivity extends AppCompatActivity {
         boolean success = databaseHelper.checkUserLogin(email, password);
         if (success) {
             Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-            // Redirect to another activity, e.g., MainActivity
-            Intent intent = new Intent(this, MainActivity.class);
+
+
+            Intent intent = new Intent(this, HomeActivity.class);
+            intent.putExtra("email", email);
+            intent.putExtra("password", password);
             startActivity(intent);
-            finish(); // Optionally finish the current activity
+
+            finish();
         } else {
             Toast.makeText(this, "Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
         }

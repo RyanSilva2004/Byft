@@ -202,9 +202,9 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
-        Bitmap profileBitmap = ((BitmapDrawable) profileImage.getDrawable()).getBitmap();
         byte[] profileImageBytes = null;
-        if (profileBitmap != null) {
+        if (profileImage.getDrawable() != null) {
+            Bitmap profileBitmap = ((BitmapDrawable) profileImage.getDrawable()).getBitmap();
             profileImageBytes = getImageBytes(profileBitmap);
         }
 
