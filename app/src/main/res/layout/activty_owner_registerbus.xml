@@ -68,8 +68,6 @@
             android:fontFamily="@font/inter"
             android:padding="8dp" />
 
-
-
         <!-- Schedule Section -->
         <TextView
             android:layout_width="wrap_content"
@@ -179,6 +177,18 @@
             android:text="No schedules added"
             android:textSize="16sp"
             android:textColor="#000000"
+            android:fontFamily="@font/inter" />
+
+        <!-- View Route Button -->
+        <Button
+            android:id="@+id/view_route_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="View Route"
+            android:backgroundTint="#000000"
+            android:textColor="#FFFFFF"
+            android:padding="12dp"
             android:fontFamily="@font/inter" />
 
         <!-- Register Bus Button -->

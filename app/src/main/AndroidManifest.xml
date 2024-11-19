@@ -30,10 +30,19 @@
             </intent-filter>
         </activity>
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAeHUnzfNx6jsdy2n14ZBN996NrgbP6XL4"/>
+
+
         <activity android:name=".SignupActivity" android:exported="true"/>
         <activity android:name=".SigninActivity" android:exported="true"/>
         <activity android:name=".HomeActivity" android:exported="true"/>
         <activity android:name=".Owner_RegisterBusActivity" android:exported="true"/>
+        <activity android:name=".RouteMapActivity" android:exported="true"/>
+
+
+
     </application>
 
 </manifest>

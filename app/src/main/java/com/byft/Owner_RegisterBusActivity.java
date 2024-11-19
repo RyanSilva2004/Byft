@@ -1,6 +1,7 @@
 package com.byft;
 
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -53,6 +54,7 @@ public class Owner_RegisterBusActivity extends AppCompatActivity {
         addScheduleButton = findViewById(R.id.addScheduleButton);
         registerBusButton = findViewById(R.id.registerBusButton);
         scheduleListTextView = findViewById(R.id.scheduleListTextView);
+        Button viewRouteButton = findViewById(R.id.view_route_button);
 
         // Load drivers list
         loadDrivers();
@@ -70,6 +72,25 @@ public class Owner_RegisterBusActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 registerBus();
+            }
+        });
+
+        // Set view route button click listener
+        viewRouteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String startLocation = startLocationSpinner.getSelectedItem().toString();
+                String endLocation = destinationSpinner.getSelectedItem().toString();
+
+                if (startLocation.isEmpty() || endLocation.isEmpty()) {
+                    Toast.makeText(Owner_RegisterBusActivity.this, "Please select start and end locations", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Intent intent = new Intent(Owner_RegisterBusActivity.this, RouteMapActivity.class);
+                intent.putExtra("start_location", startLocation);
+                intent.putExtra("end_location", endLocation);
+                startActivity(intent);
             }
         });
     }
@@ -119,7 +140,6 @@ public class Owner_RegisterBusActivity extends AppCompatActivity {
         String busSeats = busSeatsSpinner.getSelectedItem().toString();
         String driver = driverSpinner.getSelectedItem().toString();
 
-
         // Validate bus number format (Sri Lankan vehicle number format)
         if (!busNumber.matches("^[A-Z]{2,3}-\\d{4}$")) {
             Toast.makeText(this, "Invalid bus number format", Toast.LENGTH_SHORT).show();
@@ -132,9 +152,8 @@ public class Owner_RegisterBusActivity extends AppCompatActivity {
             return;
         }
 
-        // Convert busSeats and departureInterval to integers
+        // Convert busSeats to integer
         int busSeatsInt;
-        int departureIntervalInt;
         try {
             busSeatsInt = Integer.parseInt(busSeats);
         } catch (NumberFormatException e) {
