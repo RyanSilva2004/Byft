@@ -14,10 +14,11 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "UserDatabase.db";
-    private static final int DATABASE_VERSION = 6; // Incremented version
+    private static final int DATABASE_VERSION = 7; // Incremented version
     private static final String TABLE_USERS = "users";
     private static final String TABLE_BUS = "Bus";
-    private static final String TABLE_BUS_SCHEDULE = "BusSchedule"; // New table
+    private static final String TABLE_BUS_SCHEDULE = "BusSchedule";
+    private static final String TABLE_BOOKINGS = "Bookings"; // New table
 
     // Columns for users table
     private static final String COLUMN_ID = "id";
@@ -42,6 +43,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_TRIP_DIRECTION = "tripDirection";
     private static final String COLUMN_START_LOCATION = "startLocation";
     private static final String COLUMN_END_LOCATION = "endLocation";
+
+    // Columns for bookings table
+    private static final String COLUMN_BOOKING_ID = "bookingID";
+    private static final String COLUMN_BOOKING_SCHEDULE_ID = "scheduleID";
+    private static final String COLUMN_BOOKING_BUS_NUMBER = "busNumber";
+    private static final String COLUMN_SEAT_NUMBER = "seatNumber";
+    private static final String COLUMN_BOOKING_USER_ID = "userID";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -76,6 +84,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_END_LOCATION + " TEXT, " +
                 "FOREIGN KEY(" + COLUMN_SCHEDULE_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "))";
         db.execSQL(createBusScheduleTable);
+
+        String createBookingsTable = "CREATE TABLE " + TABLE_BOOKINGS + " (" +
+                COLUMN_BOOKING_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_BOOKING_SCHEDULE_ID + " INTEGER, " +
+                COLUMN_BOOKING_BUS_NUMBER + " VARCHAR(20), " +
+                COLUMN_SEAT_NUMBER + " INTEGER, " +
+                COLUMN_BOOKING_USER_ID + " INTEGER, " +
+                "FOREIGN KEY(" + COLUMN_BOOKING_SCHEDULE_ID + ") REFERENCES " + TABLE_BUS_SCHEDULE + "(" + COLUMN_SCHEDULE_ID + "), " +
+                "FOREIGN KEY(" + COLUMN_BOOKING_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "), " +
+                "FOREIGN KEY(" + COLUMN_BOOKING_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "))";
+        db.execSQL(createBookingsTable);
     }
 
     @Override
@@ -106,6 +125,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (oldVersion < 6) {
             db.execSQL("ALTER TABLE " + TABLE_BUS_SCHEDULE + " ADD COLUMN " + COLUMN_START_LOCATION + " TEXT");
             db.execSQL("ALTER TABLE " + TABLE_BUS_SCHEDULE + " ADD COLUMN " + COLUMN_END_LOCATION + " TEXT");
+        }
+        if (oldVersion < 7) {
+            String createBookingsTable = "CREATE TABLE " + TABLE_BOOKINGS + " (" +
+                    COLUMN_BOOKING_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_BOOKING_SCHEDULE_ID + " INTEGER, " +
+                    COLUMN_BOOKING_BUS_NUMBER + " VARCHAR(20), " +
+                    COLUMN_SEAT_NUMBER + " INTEGER, " +
+                    COLUMN_BOOKING_USER_ID + " INTEGER, " +
+                    "FOREIGN KEY(" + COLUMN_BOOKING_SCHEDULE_ID + ") REFERENCES " + TABLE_BUS_SCHEDULE + "(" + COLUMN_SCHEDULE_ID + "), " +
+                    "FOREIGN KEY(" + COLUMN_BOOKING_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "), " +
+                    "FOREIGN KEY(" + COLUMN_BOOKING_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "))";
+            db.execSQL(createBookingsTable);
         }
     }
 
@@ -215,7 +246,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_BUS_SEATS, busSeats);
         values.put(COLUMN_BUS_OWNER_ID, driver); // Assuming driver is the bus owner ID
 
-
         long result = db.insert(TABLE_BUS, null, values);
         db.close();
         return result != -1;
@@ -235,6 +265,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
+    public boolean insertBooking(int scheduleID, String busNumber, int seatNumber, int userID) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_BOOKING_SCHEDULE_ID, scheduleID);
+        values.put(COLUMN_BOOKING_BUS_NUMBER, busNumber);
+        values.put(COLUMN_SEAT_NUMBER, seatNumber);
+        values.put(COLUMN_BOOKING_USER_ID, userID);
+
+        long result = db.insert(TABLE_BOOKINGS, null, values);
+        db.close();
+        return result != -1;
+    }
+
     public boolean isBusNumberExists(String busNumber) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_BUS, new String[]{COLUMN_BUS_NUMBER}, COLUMN_BUS_NUMBER + "=?", new String[]{busNumber}, null, null, null);
@@ -243,4 +286,74 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return exists;
     }
+
+    public List<Integer> getBookedSeats(int scheduleID) {
+        List<Integer> bookedSeats = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_BOOKINGS, new String[]{COLUMN_SEAT_NUMBER}, COLUMN_BOOKING_SCHEDULE_ID + "=?", new String[]{String.valueOf(scheduleID)}, null, null, null);
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                bookedSeats.add(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER)));
+            }
+            cursor.close();
+        }
+        db.close();
+        return bookedSeats;
+    }
+
+    public List<String> getBusesForRouteAndDate(String startLocation, String endLocation, String tripDate) {
+        List<String> buses = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_BUS_NUMBER + " FROM " + TABLE_BUS_SCHEDULE + " WHERE " +
+                        COLUMN_START_LOCATION + " = ? AND " + COLUMN_END_LOCATION + " = ? AND " + COLUMN_DAY + " = ?",
+                new String[]{startLocation, endLocation, tripDate});
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                buses.add(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BUS_NUMBER)));
+            }
+            cursor.close();
+        }
+        db.close();
+        return buses;
+    }
+
+    public int getTotalSeats(String busNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_BUS, new String[]{COLUMN_BUS_SEATS}, COLUMN_BUS_NUMBER + "=?", new String[]{busNumber}, null, null, null);
+        int totalSeats = 0;
+        if (cursor != null && cursor.moveToFirst()) {
+            totalSeats = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BUS_SEATS));
+            cursor.close();
+        }
+        db.close();
+        return totalSeats;
+    }
+
+    public boolean isSeatAlreadyBooked(int userID, int scheduleID) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_BOOKINGS, new String[]{COLUMN_BOOKING_ID},
+                COLUMN_BOOKING_USER_ID + "=? AND " + COLUMN_BOOKING_SCHEDULE_ID + "=?",
+                new String[]{String.valueOf(userID), String.valueOf(scheduleID)}, null, null, null);
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        db.close();
+        return exists;
+    }
+
+    public int getScheduleID(String busNumber, String tripDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_BUS_SCHEDULE, new String[]{COLUMN_SCHEDULE_ID},
+                COLUMN_SCHEDULE_BUS_NUMBER + "=? AND " + COLUMN_DAY + "=?",
+                new String[]{busNumber, tripDate}, null, null, null);
+        int scheduleID = -1;
+        if (cursor != null && cursor.moveToFirst()) {
+            scheduleID = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SCHEDULE_ID));
+            cursor.close();
+        }
+        db.close();
+        return scheduleID;
+    }
+
 }

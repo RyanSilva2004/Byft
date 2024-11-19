@@ -89,11 +89,19 @@ public class HomeActivity extends AppCompatActivity {
             supportButton.setVisibility(View.VISIBLE);
         }
 
-        registerBusButton = findViewById(R.id.register_bus_button);
+
         registerBusButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(HomeActivity.this, Owner_RegisterBusActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        bookRideButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, Passenger_BookRideActivity.class);
                 startActivity(intent);
             }
         });
