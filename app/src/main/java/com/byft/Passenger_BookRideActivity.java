@@ -39,18 +39,15 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
         searchBusesButton = findViewById(R.id.search_buses_button);
         busListView = findViewById(R.id.bus_list);
 
-        ArrayAdapter<CharSequence> startLocationAdapter = ArrayAdapter.createFromResource(this,
-                R.array.sri_lankan_routes, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> startLocationAdapter = ArrayAdapter.createFromResource(this, R.array.sri_lankan_routes, android.R.layout.simple_spinner_item);
         startLocationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         startLocationSpinner.setAdapter(startLocationAdapter);
 
-        ArrayAdapter<CharSequence> endLocationAdapter = ArrayAdapter.createFromResource(this, R.array.sri_lankan_routes,
-                android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> endLocationAdapter = ArrayAdapter.createFromResource(this, R.array.sri_lankan_routes, android.R.layout.simple_spinner_item);
         endLocationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         endLocationSpinner.setAdapter(endLocationAdapter);
 
-        ArrayAdapter<CharSequence> tripDateAdapter = ArrayAdapter.createFromResource(this, R.array.days_of_week,
-                android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> tripDateAdapter = ArrayAdapter.createFromResource(this, R.array.days_of_week, android.R.layout.simple_spinner_item);
         tripDateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         tripDateSpinner.setAdapter(tripDateAdapter);
 
@@ -92,10 +89,10 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
         List<String> buses = databaseHelper.getBusesForRouteAndDate(startLocation, endLocation, tripDate);
         if (buses != null && !buses.isEmpty()) {
             busList.addAll(buses);
-            busListAdapter.notifyDataSetChanged();
         } else {
             Toast.makeText(this, "No buses found for the selected route and date", Toast.LENGTH_SHORT).show();
         }
+        busListAdapter.notifyDataSetChanged();
     }
 
     private int getScheduleID(String busNumber, String tripDate) {
