@@ -42,6 +42,8 @@
         <activity android:name=".RouteMapActivity" android:exported="true"/>
         <activity android:name=".Passenger_BookRideActivity" android:exported="true"/>
         <activity android:name=".SeatSelectionActivity" android:exported="true"/>
+        <activity android:name=".Driver_ViewBusDetailsActivity" android:exported="true"/>
+
 
 
     </application>

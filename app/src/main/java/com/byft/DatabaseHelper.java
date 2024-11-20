@@ -14,7 +14,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "UserDatabase.db";
-    private static final int DATABASE_VERSION = 7; // Incremented version
+    private static final int DATABASE_VERSION = 8; // Incremented version
     private static final String TABLE_USERS = "users";
     private static final String TABLE_BUS = "Bus";
     private static final String TABLE_BUS_SCHEDULE = "BusSchedule";
@@ -34,6 +34,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_BUS_OWNER_ID = "busownerID";
     private static final String COLUMN_BUS_SEATS = "busSeats";
     private static final String COLUMN_DEPARTURE_INTERVAL = "departureInterval";
+    private static final String COLUMN_DRIVER = "driver"; // New column for driver
 
     // Columns for bus schedule table
     private static final String COLUMN_SCHEDULE_ID = "scheduleID";
@@ -71,7 +72,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_BUS_NUMBER + " VARCHAR(20) PRIMARY KEY, " +
                 COLUMN_BUS_OWNER_ID + " INTEGER, " +
                 COLUMN_BUS_SEATS + " INTEGER, " +
-                COLUMN_DEPARTURE_INTERVAL + " INTEGER)";
+                COLUMN_DEPARTURE_INTERVAL + " INTEGER, " +
+                COLUMN_DRIVER + " TEXT)"; // Add the driver column
         db.execSQL(createBusTable);
 
         String createBusScheduleTable = "CREATE TABLE " + TABLE_BUS_SCHEDULE + " (" +
@@ -137,6 +139,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     "FOREIGN KEY(" + COLUMN_BOOKING_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "), " +
                     "FOREIGN KEY(" + COLUMN_BOOKING_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "))";
             db.execSQL(createBookingsTable);
+        }
+        if (oldVersion < 8) {
+            db.execSQL("ALTER TABLE " + TABLE_BUS + " ADD COLUMN " + COLUMN_DRIVER + " TEXT");
         }
     }
 
@@ -244,7 +249,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(COLUMN_BUS_NUMBER, busNumber);
         values.put(COLUMN_BUS_SEATS, busSeats);
-        values.put(COLUMN_BUS_OWNER_ID, driver); // Assuming driver is the bus owner ID
+        values.put(COLUMN_DRIVER, driver); // Store driver in the new column
 
         long result = db.insert(TABLE_BUS, null, values);
         db.close();
@@ -356,4 +361,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return scheduleID;
     }
 
+    public List<String> getBusesForRouteAndDate(String busNumber) {
+        List<String> trips = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_DAY + ", " + COLUMN_TRIP_TIME + ", " + COLUMN_START_LOCATION + ", " + COLUMN_END_LOCATION + " FROM " + TABLE_BUS_SCHEDULE + " WHERE " + COLUMN_SCHEDULE_BUS_NUMBER + " = ?", new String[]{busNumber});
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String day = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DAY));
+                String tripTime = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TRIP_TIME));
+                String startLocation = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_START_LOCATION));
+                String endLocation = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_END_LOCATION));
+                trips.add(day + " " + tripTime + " " + startLocation + " to " + endLocation);
+            }
+            cursor.close();
+        }
+        db.close();
+        return trips;
+    }
 }

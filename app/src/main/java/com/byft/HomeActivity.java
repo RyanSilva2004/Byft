@@ -107,6 +107,15 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        viewBusDetailsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, Driver_ViewBusDetailsActivity.class);
+                intent.putExtra("email", email);
+                startActivity(intent);
+            }
+        });
     }
 
 }

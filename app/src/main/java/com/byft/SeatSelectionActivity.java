@@ -148,7 +148,6 @@ public class SeatSelectionActivity extends AppCompatActivity {
             boolean success = databaseHelper.insertBooking(scheduleID, busNumber, selectedSeat, email);
 
             if (success) {
-                sendBookingConfirmationEmail();
                 Toast.makeText(this, "Seat booked successfully!", Toast.LENGTH_SHORT).show();
                 finish();
             } else {
@@ -157,20 +156,7 @@ public class SeatSelectionActivity extends AppCompatActivity {
         }
     }
 
-    private void sendBookingConfirmationEmail() {
-        String subject = "Booking Confirmation";
-        String body = "Dear User,\n\nYour seat has been successfully booked.\n\n" +
-                "Bus Number: " + busNumber + "\n" +
-                "Seat Number: " + selectedSeat + "\n" +
-                "Schedule ID: " + scheduleID + "\n\n" +
-                "Thank you for using our service.\n\nBest Regards,\nYour Company Name";
 
-        // Replace with your email and password
-        final String username = "your-email@gmail.com";
-        final String password = "your-email-password";
-
-        EmailUtil.sendEmail(username, password, email, subject, body);
-    }
 
     private boolean isSeatAlreadyBooked(String email, int scheduleID) {
         return databaseHelper.isSeatAlreadyBooked(email, scheduleID);
