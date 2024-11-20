@@ -31,6 +31,9 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_passenger_booking);
 
+        Intent intent = getIntent();
+        String email = intent.getStringExtra("email");
+
         databaseHelper = new DatabaseHelper(this);
 
         startLocationSpinner = findViewById(R.id.start_location);
@@ -69,6 +72,7 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
                 String tripDate = tripDateSpinner.getSelectedItem().toString();
                 Intent intent = new Intent(Passenger_BookRideActivity.this, SeatSelectionActivity.class);
                 intent.putExtra("busNumber", selectedBus);
+                intent.putExtra("email", email);
                 intent.putExtra("scheduleID", getScheduleID(selectedBus, tripDate)); // Pass schedule ID
                 startActivity(intent);
             }

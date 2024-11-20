@@ -265,13 +265,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    public boolean insertBooking(int scheduleID, String busNumber, int seatNumber, int userID) {
+    public boolean insertBooking(int scheduleID, String busNumber, int seatNumber, String email) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_BOOKING_SCHEDULE_ID, scheduleID);
         values.put(COLUMN_BOOKING_BUS_NUMBER, busNumber);
         values.put(COLUMN_SEAT_NUMBER, seatNumber);
-        values.put(COLUMN_BOOKING_USER_ID, userID);
+        values.put(COLUMN_BOOKING_USER_ID, getUserIDByEmail(email)); // Get user ID by email
 
         long result = db.insert(TABLE_BOOKINGS, null, values);
         db.close();
@@ -331,8 +331,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return totalSeats;
     }
 
-    public boolean isSeatAlreadyBooked(int userID, int scheduleID) {
+    public boolean isSeatAlreadyBooked(String email, int scheduleID) {
         SQLiteDatabase db = this.getReadableDatabase();
+        int userID = getUserIDByEmail(email); // Get user ID by email
         Cursor cursor = db.query(TABLE_BOOKINGS, new String[]{COLUMN_BOOKING_ID},
                 COLUMN_BOOKING_USER_ID + "=? AND " + COLUMN_BOOKING_SCHEDULE_ID + "=?",
                 new String[]{String.valueOf(userID), String.valueOf(scheduleID)}, null, null, null);
@@ -356,4 +357,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return scheduleID;
     }
 
+    public int getUserIDByEmail(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_ID}, COLUMN_EMAIL + "=?",
+                new String[]{email}, null, null, null);
+        int userID = -1;
+        if (cursor != null && cursor.moveToFirst()) {
+            userID = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID));
+            cursor.close();
+        }
+        db.close();
+        return userID;
+    }
 }

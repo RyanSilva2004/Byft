@@ -94,6 +94,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(HomeActivity.this, Owner_RegisterBusActivity.class);
+                intent.putExtra("email", email);
                 startActivity(intent);
             }
         });
@@ -102,6 +103,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(HomeActivity.this, Passenger_BookRideActivity.class);
+                intent.putExtra("email", email);
                 startActivity(intent);
             }
         });
