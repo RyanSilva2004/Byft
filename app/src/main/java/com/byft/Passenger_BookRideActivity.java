@@ -24,15 +24,12 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
     private ListView busListView;
     private DatabaseHelper databaseHelper;
     private List<String> busList;
-    private ArrayAdapter<String> busListAdapter;
+    private BusListAdapter busListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_passenger_booking);
-
-        Intent intent = getIntent();
-        String email = intent.getStringExtra("email");
 
         databaseHelper = new DatabaseHelper(this);
 
@@ -42,20 +39,23 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
         searchBusesButton = findViewById(R.id.search_buses_button);
         busListView = findViewById(R.id.bus_list);
 
-        ArrayAdapter<CharSequence> startLocationAdapter = ArrayAdapter.createFromResource(this, R.array.sri_lankan_routes, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> startLocationAdapter = ArrayAdapter.createFromResource(this,
+                R.array.sri_lankan_routes, android.R.layout.simple_spinner_item);
         startLocationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         startLocationSpinner.setAdapter(startLocationAdapter);
 
-        ArrayAdapter<CharSequence> endLocationAdapter = ArrayAdapter.createFromResource(this, R.array.sri_lankan_routes, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> endLocationAdapter = ArrayAdapter.createFromResource(this, R.array.sri_lankan_routes,
+                android.R.layout.simple_spinner_item);
         endLocationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         endLocationSpinner.setAdapter(endLocationAdapter);
 
-        ArrayAdapter<CharSequence> tripDateAdapter = ArrayAdapter.createFromResource(this, R.array.days_of_week, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> tripDateAdapter = ArrayAdapter.createFromResource(this, R.array.days_of_week,
+                android.R.layout.simple_spinner_item);
         tripDateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         tripDateSpinner.setAdapter(tripDateAdapter);
 
         busList = new ArrayList<>();
-        busListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, busList);
+        busListAdapter = new BusListAdapter(this, busList);
         busListView.setAdapter(busListAdapter);
 
         searchBusesButton.setOnClickListener(new View.OnClickListener() {
@@ -72,7 +72,6 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
                 String tripDate = tripDateSpinner.getSelectedItem().toString();
                 Intent intent = new Intent(Passenger_BookRideActivity.this, SeatSelectionActivity.class);
                 intent.putExtra("busNumber", selectedBus);
-                intent.putExtra("email", email);
                 intent.putExtra("scheduleID", getScheduleID(selectedBus, tripDate)); // Pass schedule ID
                 startActivity(intent);
             }

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -52,6 +53,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_SEAT_NUMBER = "seatNumber";
     private static final String COLUMN_BOOKING_USER_ID = "userID";
 
+    // Columns for ratings table
+    private static final String COLUMN_RATING_ID = "ratingID";
+    private static final String COLUMN_RATING_USER_EMAIL = "userEmail";
+    private static final String COLUMN_RATING_BUS_NUMBER = "busNumber";
+    private static final String COLUMN_RATING_VALUE = "ratingValue";
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -97,6 +104,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY(" + COLUMN_BOOKING_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "), " +
                 "FOREIGN KEY(" + COLUMN_BOOKING_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "))";
         db.execSQL(createBookingsTable);
+
+        String createRatingsTable = "CREATE TABLE " + TABLE_RATINGS + " (" +
+                COLUMN_RATING_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_RATING_USER_EMAIL + " TEXT, " +
+                COLUMN_RATING_BUS_NUMBER + " VARCHAR(20), " +
+                COLUMN_RATING_VALUE + " REAL)";
+        db.execSQL(createRatingsTable);
     }
 
     @Override
@@ -139,6 +153,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     "FOREIGN KEY(" + COLUMN_BOOKING_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "), " +
                     "FOREIGN KEY(" + COLUMN_BOOKING_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "))";
             db.execSQL(createBookingsTable);
+        }
+        if (oldVersion < 8) {
+            String createRatingsTable = "CREATE TABLE " + TABLE_RATINGS + " (" +
+                    COLUMN_RATING_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_RATING_USER_EMAIL + " TEXT, " +
+                    COLUMN_RATING_BUS_NUMBER + " VARCHAR(20), " +
+                    COLUMN_RATING_VALUE + " REAL)";
+            db.execSQL(createRatingsTable);
         }
         if (oldVersion < 8) {
             db.execSQL("ALTER TABLE " + TABLE_BUS + " ADD COLUMN " + COLUMN_DRIVER + " TEXT");
@@ -378,5 +400,94 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         db.close();
         return trips;
+    }
+    
+    public int getUserIdByEmail(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[] { COLUMN_ID }, COLUMN_EMAIL + "=?", new String[] { email },
+                null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            int userId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID));
+            cursor.close();
+            return userId;
+        }
+        return -1; // Return -1 if user not found
+    }
+
+    public List<Booking> getBookingsByUserId(int userId) {
+        List<Booking> bookings = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_USER_ID + "=?",
+                new String[] { String.valueOf(userId) });
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_ID));
+                int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
+                String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
+                int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
+                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId));
+            }
+            cursor.close();
+        }
+        db.close();
+        return bookings;
+    }
+
+    public void saveRating(String userEmail, String busNumber, float ratingValue) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        if (ratingExists(userEmail, busNumber)) {
+            // Update existing rating
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_RATING_VALUE, ratingValue);
+            db.update(TABLE_RATINGS, values, COLUMN_RATING_USER_EMAIL + "=? AND " + COLUMN_RATING_BUS_NUMBER + "=?",
+                    new String[] { userEmail, busNumber });
+            Log.d("DatabaseHelper",
+                    "Rating updated: " + ratingValue + " for bus: " + busNumber + " by user: " + userEmail);
+        } else {
+            // Insert new rating
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_RATING_USER_EMAIL, userEmail);
+            values.put(COLUMN_RATING_BUS_NUMBER, busNumber);
+            values.put(COLUMN_RATING_VALUE, ratingValue);
+            db.insert(TABLE_RATINGS, null, values);
+            Log.d("DatabaseHelper",
+                    "Rating saved: " + ratingValue + " for bus: " + busNumber + " by user: " + userEmail);
+        }
+        db.close();
+    }
+
+    public float getRating(String userEmail, String busNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_RATINGS, new String[] { COLUMN_RATING_VALUE },
+                COLUMN_RATING_USER_EMAIL + "=? AND " + COLUMN_RATING_BUS_NUMBER + "=?",
+                new String[] { userEmail, busNumber }, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            float ratingValue = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_RATING_VALUE));
+            cursor.close();
+            return ratingValue;
+        }
+        return 0; // Default rating value if no rating found
+    }
+
+    private boolean ratingExists(String userEmail, String busNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_RATINGS, new String[] { COLUMN_RATING_ID },
+                COLUMN_RATING_USER_EMAIL + "=? AND " + COLUMN_RATING_BUS_NUMBER + "=?",
+                new String[] { userEmail, busNumber }, null, null, null);
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        return exists;
+    }
+
+    public float getAverageRating(String busNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT AVG(" + COLUMN_RATING_VALUE + ") FROM " + TABLE_RATINGS + " WHERE "
+                + COLUMN_RATING_BUS_NUMBER + "=?", new String[] { busNumber });
+        if (cursor != null && cursor.moveToFirst()) {
+            float averageRating = cursor.getFloat(0);
+            cursor.close();
+            return averageRating;
+        }
+        return 0; // Default rating value if no ratings found
     }
 }

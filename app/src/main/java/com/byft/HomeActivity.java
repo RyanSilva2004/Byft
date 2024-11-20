@@ -116,6 +116,16 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        rideHistoryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, RideHistoryActivity.class);
+                intent.putExtra("email", email);
+                startActivity(intent);
+            }
+        });
+
     }
 
 }
