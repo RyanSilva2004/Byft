@@ -19,7 +19,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_USERS = "users";
     private static final String TABLE_BUS = "Bus";
     private static final String TABLE_BUS_SCHEDULE = "BusSchedule";
-    private static final String TABLE_BOOKINGS = "Bookings"; // New table
+    private static final String TABLE_BOOKINGS = "Bookings";
+    private static final String TABLE_RATINGS = "Ratings"; // New table
 
     // Columns for users table
     private static final String COLUMN_ID = "id";
@@ -35,7 +36,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_BUS_OWNER_ID = "busownerID";
     private static final String COLUMN_BUS_SEATS = "busSeats";
     private static final String COLUMN_DEPARTURE_INTERVAL = "departureInterval";
-    private static final String COLUMN_DRIVER = "driver"; // New column for driver
+    private static final String COLUMN_DRIVER = "driver";
 
     // Columns for bus schedule table
     private static final String COLUMN_SCHEDULE_ID = "scheduleID";
@@ -80,7 +81,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_BUS_OWNER_ID + " INTEGER, " +
                 COLUMN_BUS_SEATS + " INTEGER, " +
                 COLUMN_DEPARTURE_INTERVAL + " INTEGER, " +
-                COLUMN_DRIVER + " TEXT)"; // Add the driver column
+                COLUMN_DRIVER + " TEXT)"; // Add the driver columnn
         db.execSQL(createBusTable);
 
         String createBusScheduleTable = "CREATE TABLE " + TABLE_BUS_SCHEDULE + " (" +
@@ -91,7 +92,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_TRIP_DIRECTION + " TEXT, " +
                 COLUMN_START_LOCATION + " TEXT, " +
                 COLUMN_END_LOCATION + " TEXT, " +
-                "FOREIGN KEY(" + COLUMN_SCHEDULE_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "))";
+                "FOREIGN KEY(" + COLUMN_SCHEDULE_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER
+                + "))";
         db.execSQL(createBusScheduleTable);
 
         String createBookingsTable = "CREATE TABLE " + TABLE_BOOKINGS + " (" +
@@ -100,8 +102,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_BOOKING_BUS_NUMBER + " VARCHAR(20), " +
                 COLUMN_SEAT_NUMBER + " INTEGER, " +
                 COLUMN_BOOKING_USER_ID + " INTEGER, " +
-                "FOREIGN KEY(" + COLUMN_BOOKING_SCHEDULE_ID + ") REFERENCES " + TABLE_BUS_SCHEDULE + "(" + COLUMN_SCHEDULE_ID + "), " +
-                "FOREIGN KEY(" + COLUMN_BOOKING_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "), " +
+                "FOREIGN KEY(" + COLUMN_BOOKING_SCHEDULE_ID + ") REFERENCES " + TABLE_BUS_SCHEDULE + "("
+                + COLUMN_SCHEDULE_ID + "), " +
+                "FOREIGN KEY(" + COLUMN_BOOKING_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER
+                + "), " +
                 "FOREIGN KEY(" + COLUMN_BOOKING_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "))";
         db.execSQL(createBookingsTable);
 
@@ -135,7 +139,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_DAY + " TEXT, " +
                     COLUMN_TRIP_TIME + " TEXT, " +
                     COLUMN_TRIP_DIRECTION + " TEXT, " +
-                    "FOREIGN KEY(" + COLUMN_SCHEDULE_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "))";
+                    "FOREIGN KEY(" + COLUMN_SCHEDULE_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER
+                    + "))";
             db.execSQL(createBusScheduleTable);
         }
         if (oldVersion < 6) {
@@ -149,8 +154,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_BOOKING_BUS_NUMBER + " VARCHAR(20), " +
                     COLUMN_SEAT_NUMBER + " INTEGER, " +
                     COLUMN_BOOKING_USER_ID + " INTEGER, " +
-                    "FOREIGN KEY(" + COLUMN_BOOKING_SCHEDULE_ID + ") REFERENCES " + TABLE_BUS_SCHEDULE + "(" + COLUMN_SCHEDULE_ID + "), " +
-                    "FOREIGN KEY(" + COLUMN_BOOKING_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER + "), " +
+                    "FOREIGN KEY(" + COLUMN_BOOKING_SCHEDULE_ID + ") REFERENCES " + TABLE_BUS_SCHEDULE + "("
+                    + COLUMN_SCHEDULE_ID + "), " +
+                    "FOREIGN KEY(" + COLUMN_BOOKING_BUS_NUMBER + ") REFERENCES " + TABLE_BUS + "(" + COLUMN_BUS_NUMBER
+                    + "), " +
                     "FOREIGN KEY(" + COLUMN_BOOKING_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "))";
             db.execSQL(createBookingsTable);
         }
@@ -167,14 +174,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public boolean insertUser(String name, String email, String phone, String password, @Nullable byte[] profileImage, String userType) {
+    public boolean insertUser(String name, String email, String phone, String password, @Nullable byte[] profileImage,
+            String userType) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME, name);
         values.put(COLUMN_EMAIL, email);
         values.put(COLUMN_PHONE, phone);
         values.put(COLUMN_PASSWORD, password);
-        values.put(COLUMN_USER_TYPE, userType);  // Inserting user type
+        values.put(COLUMN_USER_TYPE, userType); // Inserting user type
 
         if (profileImage != null) {
             values.put(COLUMN_PROFILE_IMAGE, profileImage);
@@ -194,6 +202,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return exists;
     }
+
 
     public boolean checkUserLogin(String email, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -401,7 +410,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return trips;
     }
-    
+
     public int getUserIdByEmail(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_USERS, new String[] { COLUMN_ID }, COLUMN_EMAIL + "=?", new String[] { email },
@@ -490,4 +499,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return 0; // Default rating value if no ratings found
     }
+
 }
