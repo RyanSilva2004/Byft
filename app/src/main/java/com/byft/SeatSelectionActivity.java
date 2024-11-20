@@ -42,7 +42,6 @@ public class SeatSelectionActivity extends AppCompatActivity {
         busNumber = intent.getStringExtra("busNumber");
         scheduleID = intent.getIntExtra("scheduleID", -1);
 
-
         displayBusDetails();
         displaySeats();
 
@@ -141,20 +140,36 @@ public class SeatSelectionActivity extends AppCompatActivity {
 
     private void bookSeat() {
         if (selectedSeat != -1) {
-
             if (isSeatAlreadyBooked(email, scheduleID)) {
                 Toast.makeText(this, "You have already booked a seat on this bus for the selected date.", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             boolean success = databaseHelper.insertBooking(scheduleID, busNumber, selectedSeat, email);
 
             if (success) {
+                sendBookingConfirmationEmail();
                 Toast.makeText(this, "Seat booked successfully!", Toast.LENGTH_SHORT).show();
                 finish();
             } else {
                 Toast.makeText(this, "Failed to book seat. Please try again.", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void sendBookingConfirmationEmail() {
+        String subject = "Booking Confirmation";
+        String body = "Dear User,\n\nYour seat has been successfully booked.\n\n" +
+                "Bus Number: " + busNumber + "\n" +
+                "Seat Number: " + selectedSeat + "\n" +
+                "Schedule ID: " + scheduleID + "\n\n" +
+                "Thank you for using our service.\n\nBest Regards,\nYour Company Name";
+
+        // Replace with your email and password
+        final String username = "your-email@gmail.com";
+        final String password = "your-email-password";
+
+        EmailUtil.sendEmail(username, password, email, subject, body);
     }
 
     private boolean isSeatAlreadyBooked(String email, int scheduleID) {
