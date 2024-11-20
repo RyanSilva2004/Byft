@@ -23,6 +23,7 @@ public class SeatSelectionActivity extends AppCompatActivity {
     private String busNumber;
     private int scheduleID;
     private int selectedSeat = -1;
+    String email;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +38,7 @@ public class SeatSelectionActivity extends AppCompatActivity {
         databaseHelper = new DatabaseHelper(this);
 
         Intent intent = getIntent();
+        email = intent.getStringExtra("email");
         busNumber = intent.getStringExtra("busNumber");
         scheduleID = intent.getIntExtra("scheduleID", -1);
 
@@ -138,12 +140,12 @@ public class SeatSelectionActivity extends AppCompatActivity {
 
     private void bookSeat() {
         if (selectedSeat != -1) {
-            int userID = 1;
-            if (isSeatAlreadyBooked(userID, scheduleID)) {
+            if (isSeatAlreadyBooked(email, scheduleID)) {
                 Toast.makeText(this, "You have already booked a seat on this bus for the selected date.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            boolean success = databaseHelper.insertBooking(scheduleID, busNumber, selectedSeat, userID);
+
+            boolean success = databaseHelper.insertBooking(scheduleID, busNumber, selectedSeat, email);
 
             if (success) {
                 Toast.makeText(this, "Seat booked successfully!", Toast.LENGTH_SHORT).show();
@@ -154,7 +156,9 @@ public class SeatSelectionActivity extends AppCompatActivity {
         }
     }
 
-    private boolean isSeatAlreadyBooked(int userID, int scheduleID) {
-        return databaseHelper.isSeatAlreadyBooked(userID, scheduleID);
+
+
+    private boolean isSeatAlreadyBooked(String email, int scheduleID) {
+        return databaseHelper.isSeatAlreadyBooked(email, scheduleID);
     }
 }
