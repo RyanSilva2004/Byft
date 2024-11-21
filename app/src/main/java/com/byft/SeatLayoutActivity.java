@@ -24,7 +24,7 @@ public class SeatLayoutActivity extends AppCompatActivity {
     private Button bookButton;
     private DatabaseHelper databaseHelper;
     private int bookingId;
-    private int userId;
+    private String userId;
     private int scheduleId;
     private List<Integer> bookedSeats;
     private int userBookedSeat = -1;

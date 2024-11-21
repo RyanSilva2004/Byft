@@ -23,18 +23,15 @@ public class RideHistoryActivity extends AppCompatActivity {
         // Get email from intent
         String email = getIntent().getStringExtra("email");
         if (email != null) {
-            int userId = databaseHelper.getUserIdByEmail(email);
-            if (userId != -1) {
-                List<Booking> rideHistory = databaseHelper.getBookingsByUserId(userId);
+
+                List<Booking> rideHistory = databaseHelper.getBookingsByUserId(email);
                 if (rideHistory != null && !rideHistory.isEmpty()) {
                     RideHistoryAdapter adapter = new RideHistoryAdapter(this, rideHistory, email);
                     rideHistoryRecyclerView.setAdapter(adapter);
                 } else {
                     Toast.makeText(this, "No ride history found for this user.", Toast.LENGTH_SHORT).show();
                 }
-            } else {
-                Toast.makeText(this, "User not found.", Toast.LENGTH_SHORT).show();
-            }
+
         } else {
             Toast.makeText(this, "Email not found.", Toast.LENGTH_SHORT).show();
         }

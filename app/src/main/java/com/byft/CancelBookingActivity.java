@@ -18,7 +18,8 @@ public class CancelBookingActivity extends AppCompatActivity {
     private DatabaseHelper databaseHelper;
     private List<Booking> bookingsList;
     private CancelBookingsListAdapter bookingsListAdapter;
-    private int userId;
+    String email;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,14 +35,11 @@ public class CancelBookingActivity extends AppCompatActivity {
         bookingsListView.setAdapter(bookingsListAdapter);
 
         // Get email from intent
-        String email = getIntent().getStringExtra("email");
+        email = getIntent().getStringExtra("email");
         if (email != null) {
-            userId = databaseHelper.getUserIdByEmail(email);
-            if (userId != -1) {
+
                 loadBookings();
-            } else {
-                Toast.makeText(this, "Invalid user email", Toast.LENGTH_SHORT).show();
-            }
+
         } else {
             Toast.makeText(this, "Email not provided", Toast.LENGTH_SHORT).show();
         }
@@ -49,7 +47,7 @@ public class CancelBookingActivity extends AppCompatActivity {
 
     private void loadBookings() {
         bookingsList.clear();
-        List<Booking> bookings = databaseHelper.getBookingsForUser(userId);
+        List<Booking> bookings = databaseHelper.getBookingsForUser(email);
         if (bookings != null && !bookings.isEmpty()) {
             bookingsList.addAll(bookings);
             bookingsListAdapter.notifyDataSetChanged();

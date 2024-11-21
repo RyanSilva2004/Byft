@@ -5,9 +5,9 @@ public class Booking {
     private int scheduleId;
     private String busNumber;
     private int seatNumber;
-    private int userId;
+    private String userId;
 
-    public Booking(int bookingId, int scheduleId, String busNumber, int seatNumber, int userId) {
+    public Booking(int bookingId, int scheduleId, String busNumber, int seatNumber, String userId) {
         this.bookingId = bookingId;
         this.scheduleId = scheduleId;
         this.busNumber = busNumber;
@@ -31,7 +31,7 @@ public class Booking {
         return seatNumber;
     }
 
-    public int getUserId() {
+    public String getUserId() {
         return userId;
     }
 

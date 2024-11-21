@@ -414,11 +414,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return -1; // Return -1 if user not found
     }
 
-    public List<Booking> getBookingsByUserId(int userId) {
+    public List<Booking> getBookingsByUserId(String userId) {
         List<Booking> bookings = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_USER_ID + "=?",
-                new String[] { String.valueOf(userId) });
+                new String[] { userId });
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_ID));
@@ -490,7 +490,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return 0; // Default rating value if no ratings found
     }
-    public List<Booking> getUserBookings(int userId) {
+    public List<Booking> getUserBookings(String userId) {
         List<Booking> bookings = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_USER_ID + "=?", new String[]{String.valueOf(userId)});
@@ -514,7 +514,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
             String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
             int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
-            int userId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_USER_ID));
+            String userId = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_USER_ID));
             cursor.close();
             return new Booking(bookingId, scheduleId, busNumber, seatNumber, userId);
         }
@@ -551,7 +551,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.update(TABLE_BOOKINGS, values, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
         db.close();
     }
-    public List<Booking> getBookingsForUser(int userId) {
+    public List<Booking> getBookingsForUser(String userId) {
         List<Booking> bookings = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_USER_ID + "=?", new String[]{String.valueOf(userId)});
@@ -573,30 +573,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.delete(TABLE_BOOKINGS, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
         db.close();
     }
-    public void updateBookingState(int bookingId, String newState) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("state", newState); // Assuming there is a column named "state" in the bookings table
-        db.update(TABLE_BOOKINGS, values, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
-        db.close();
-    }
-    public List<Booking> getPendingCancelRequests() {
-        List<Booking> bookings = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE state = ?", new String[]{"pending"});
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_ID));
-                int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
-                String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
-                int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
-                int userId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_USER_ID));
-                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId));
-            }
-            cursor.close();
-        }
-        db.close();
-        return bookings;
-    }
+
 
 }

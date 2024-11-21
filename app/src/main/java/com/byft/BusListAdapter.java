@@ -30,14 +30,17 @@ public class BusListAdapter extends ArrayAdapter<String> {
         String busNumber = buses.get(position);
 
         TextView busDetails = convertView.findViewById(R.id.bus_details);
-        RatingBar busRating = convertView.findViewById(R.id.bus_rating);
+        TextView busRatingText = convertView.findViewById(R.id.bus_rating_text);
 
         busDetails.setText(busNumber);
 
         // Retrieve and set the average rating
         float averageRating = databaseHelper.getAverageRating(busNumber);
-        busRating.setRating(averageRating);
+
+        // Format the rating as "4/5 ★"
+        busRatingText.setText(String.format("%.1f/5 ★", averageRating));
 
         return convertView;
     }
+
 }

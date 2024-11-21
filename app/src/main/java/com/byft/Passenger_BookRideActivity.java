@@ -24,13 +24,15 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
     private ListView busListView;
     private DatabaseHelper databaseHelper;
     private List<String> busList;
-    private BusListAdapter busListAdapter;
-    private int userId;
+    private ArrayAdapter<String> busListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_passenger_booking);
+
+        Intent intent = getIntent();
+        String email = intent.getStringExtra("email");
 
         databaseHelper = new DatabaseHelper(this);
 
@@ -53,11 +55,8 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
         tripDateSpinner.setAdapter(tripDateAdapter);
 
         busList = new ArrayList<>();
-        busListAdapter = new BusListAdapter(this, busList);
+        busListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, busList);
         busListView.setAdapter(busListAdapter);
-
-        // Get user ID from intent
-        userId = getIntent().getIntExtra("userId", -1);
 
         searchBusesButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,6 +72,7 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
                 String tripDate = tripDateSpinner.getSelectedItem().toString();
                 Intent intent = new Intent(Passenger_BookRideActivity.this, SeatSelectionActivity.class);
                 intent.putExtra("busNumber", selectedBus);
+                intent.putExtra("email", email);
                 intent.putExtra("scheduleID", getScheduleID(selectedBus, tripDate)); // Pass schedule ID
                 startActivity(intent);
             }
@@ -93,10 +93,10 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
         List<String> buses = databaseHelper.getBusesForRouteAndDate(startLocation, endLocation, tripDate);
         if (buses != null && !buses.isEmpty()) {
             busList.addAll(buses);
+            busListAdapter.notifyDataSetChanged();
         } else {
             Toast.makeText(this, "No buses found for the selected route and date", Toast.LENGTH_SHORT).show();
         }
-        busListAdapter.notifyDataSetChanged();
     }
 
     private int getScheduleID(String busNumber, String tripDate) {
