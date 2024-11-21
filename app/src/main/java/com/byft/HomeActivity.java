@@ -49,6 +49,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LinearLayout registerBusButton, manageBusButton;
     private LinearLayout viewBusDetailsButton, tripsButton;
     private LinearLayout requestCancelBookingButton, requestSwapSeatButton;
+    private LinearLayout CheckCancel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +91,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         tripsButton = findViewById(R.id.trips_button);
         requestCancelBookingButton = findViewById(R.id.cancel_bookings_button);
         requestSwapSeatButton = findViewById(R.id.swap_seats_button);
+        CheckCancel = findViewById(R.id.check_cancel_button);
 
         setupHighwayTerminals();
         setupSpinner();
@@ -226,6 +228,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         manageBusButton.setVisibility(View.GONE);
         viewBusDetailsButton.setVisibility(View.GONE);
         tripsButton.setVisibility(View.GONE);
+        CheckCancel.setVisibility(View.GONE);
 
         // Adjust visibility based on role
         if ("PASSENGER".equalsIgnoreCase(role)) {
@@ -238,11 +241,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             registerBusButton.setVisibility(View.VISIBLE);
             manageBusButton.setVisibility(View.VISIBLE);
             supportButton.setVisibility(View.VISIBLE);
+
         } else if ("BUS DRIVER".equalsIgnoreCase(role)) {
             viewBusDetailsButton.setVisibility(View.VISIBLE);
             tripsButton.setVisibility(View.VISIBLE);
             supportButton.setVisibility(View.VISIBLE);
-            requestCancelBookingButton.setVisibility(View.VISIBLE); // Corrected to show button
+            CheckCancel.setVisibility(View.VISIBLE);
+
         }
     }
 
@@ -279,6 +284,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         requestCancelBookingButton.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, CancelBookingActivity.class);
+            intent.putExtra("email", email);
+            startActivity(intent);
+        });
+
+        CheckCancel.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, CancelRequestsActivity.class);
             intent.putExtra("email", email);
             startActivity(intent);
         });

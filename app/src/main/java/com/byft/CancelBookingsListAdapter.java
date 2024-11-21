@@ -38,11 +38,21 @@ public class CancelBookingsListAdapter extends ArrayAdapter<Booking> {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Cancel the booking
-                databaseHelper.deleteBooking(booking.getBookingId());
-                bookings.remove(position);
-                notifyDataSetChanged();
-                Toast.makeText(context, "Booking canceled", Toast.LENGTH_SHORT).show();
+                // Save the booking details in the CancelBookingsTable with state "pending"
+                boolean isInserted = databaseHelper.insertCancelBooking(
+                        booking.getBookingId(),
+                        booking.getBusNumber(),
+                        booking.getSeatNumber(),
+                        booking.getUserId()
+                );
+
+                if (isInserted) {
+                    bookings.remove(position);
+                    notifyDataSetChanged();
+                    Toast.makeText(context, "Booking cancellation requested", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "Failed to request booking cancellation", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

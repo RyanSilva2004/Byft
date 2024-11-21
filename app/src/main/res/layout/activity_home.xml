@@ -341,6 +341,33 @@
                 android:gravity="center" />
         </LinearLayout>
 
+        <!-- check_cancel_button-->
+        <LinearLayout
+            android:id="@+id/check_cancel_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/cancel"
+                android:contentDescription="Cancel Bookings Icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancel Bookings"
+                android:fontFamily="@font/inter"
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:gravity="center" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </RelativeLayout>

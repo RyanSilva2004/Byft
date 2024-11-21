@@ -48,7 +48,7 @@
         <activity android:name=".BookingsListAdapter" android:exported="true"/>
         <activity android:name=".SeatLayoutActivity" android:exported="true"/>
         <activity android:name=".CancelBookingActivity" android:exported="true"/>
-
+        <activity android:name=".CancelRequestsActivity" android:exported="true"/>
 
 
 

@@ -3,6 +3,7 @@ package com.byft;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -11,6 +12,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -139,6 +141,7 @@ public class Owner_RegisterBusActivity extends AppCompatActivity {
         String busNumber = busNumberEditText.getText().toString().trim();
         String busSeats = busSeatsSpinner.getSelectedItem().toString();
         String driver = driverSpinner.getSelectedItem().toString();
+        String email = driver.substring(driver.indexOf("(") + 1, driver.indexOf(")"));
 
         // Validate bus number format (Sri Lankan vehicle number format)
         if (!busNumber.matches("^[A-Z]{2,3}-\\d{4}$")) {
@@ -162,7 +165,8 @@ public class Owner_RegisterBusActivity extends AppCompatActivity {
         }
 
         // Insert bus into the database
-        boolean success = databaseHelper.insertBus(busNumber, busSeatsInt, driver);
+        boolean success = databaseHelper.insertBus(busNumber, busSeatsInt, email);
+        Log.d("Driver details","Driver email: " +  email);
         if (success) {
             Toast.makeText(this, "Bus registered successfully", Toast.LENGTH_SHORT).show();
             // Insert all schedules into the database
