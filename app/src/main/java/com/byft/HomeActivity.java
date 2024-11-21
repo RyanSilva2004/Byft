@@ -24,6 +24,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.SimpleDateFormat;
@@ -153,9 +154,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             // Clear existing markers on the map
             mMap.clear();
-
-            // Query the database for buses at the selected terminal
-            Cursor cursor = databaseHelper.getAvailableBuses(terminal); // Ensure this method exists and works correctly
+            String today = new SimpleDateFormat("EEEE", Locale.getDefault()).format(new Date());
+            Cursor cursor = databaseHelper.getAvailableBuses(terminal, today);
 
             // Define radius and angle variables for marker placement
             double radius = 0.0001; // Increased radius for better separation
@@ -185,12 +185,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     angle += angleIncrement;
 
                     // Add a marker for each bus
-                    mMap.addMarker(new MarkerOptions()
+                    Marker marker = mMap.addMarker(new MarkerOptions()
                             .position(new LatLng(offsetLatitude, offsetLongitude))
                             .title("Bus: " + busNumber)
                             .snippet("Departure: " + tripTime + " | Destination: " + endLocation)
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon))); // Use custom icon
 
+                    // Store bus details as a tag for easy retrieval
+                    marker.setTag(new String[]{busNumber, terminal, endLocation});
                 } while (cursor.moveToNext());
 
                 cursor.close(); // Close cursor after use
@@ -204,6 +206,28 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (terminalLocation != null) {
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(terminalLocation, 16)); // Adjust zoom level as needed
             }
+
+            // Add marker click listener
+            mMap.setOnMarkerClickListener(marker -> {
+                // Display bus details in a Toast or dialog
+                String[] busDetails = (String[]) marker.getTag();
+                if (busDetails != null) {
+                    Toast.makeText(this, "Bus: " + busDetails[0] + "\nTerminal: " + busDetails[1] + "\nDestination: " + busDetails[2], Toast.LENGTH_LONG).show();
+                }
+                return false; // Return false to allow info window to show
+            });
+
+            // Add info window click listener
+            mMap.setOnInfoWindowClickListener(marker -> {
+                String[] busDetails = (String[]) marker.getTag();
+                if (busDetails != null) {
+                    // Transition to RouteMapActivity with bus details
+                    Intent intent = new Intent(this, RouteMapActivity.class);
+                    intent.putExtra("start_location", busDetails[1]); // Terminal
+                    intent.putExtra("end_location", busDetails[2]); // Destination
+                    startActivity(intent);
+                }
+            });
         } catch (Exception e) {
             // Handle any errors and log them
             Log.e("RouteMapActivity", "Error displaying buses: " + e.getMessage());

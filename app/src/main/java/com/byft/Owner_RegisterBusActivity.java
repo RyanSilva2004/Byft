@@ -136,13 +136,36 @@ public class Owner_RegisterBusActivity extends AppCompatActivity {
     }
 
     private void registerBus() {
-        String busNumber = busNumberEditText.getText().toString().trim();
-        String busSeats = busSeatsSpinner.getSelectedItem().toString();
-        String driver = driverSpinner.getSelectedItem().toString();
+        // Ensure UI components are not null
+        if (busNumberEditText == null || busSeatsSpinner == null || driverSpinner == null) {
+            Toast.makeText(this, "Required fields are missing. Please try again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Retrieve values from input fields
+        String busNumber = busNumberEditText.getText() != null ? busNumberEditText.getText().toString().trim() : "";
+        String busSeats = busSeatsSpinner.getSelectedItem() != null ? busSeatsSpinner.getSelectedItem().toString() : "";
+        String driver = driverSpinner.getSelectedItem() != null ? driverSpinner.getSelectedItem().toString() : "";
+
+        // Validate input values
+        if (busNumber.isEmpty()) {
+            Toast.makeText(this, "Please enter a bus number", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (busSeats.isEmpty()) {
+            Toast.makeText(this, "Please select the number of seats", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+//        if (driver.isEmpty()) {
+//            Toast.makeText(this, "Please select a driver", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
 
         // Validate bus number format (Sri Lankan vehicle number format)
         if (!busNumber.matches("^[A-Z]{2,3}-\\d{4}$")) {
-            Toast.makeText(this, "Invalid bus number format", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Invalid bus number format. Use format like 'AB-1234'.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -157,7 +180,7 @@ public class Owner_RegisterBusActivity extends AppCompatActivity {
         try {
             busSeatsInt = Integer.parseInt(busSeats);
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "Invalid number format", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Invalid number format for seats", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -165,15 +188,27 @@ public class Owner_RegisterBusActivity extends AppCompatActivity {
         boolean success = databaseHelper.insertBus(busNumber, busSeatsInt, driver);
         if (success) {
             Toast.makeText(this, "Bus registered successfully", Toast.LENGTH_SHORT).show();
+
             // Insert all schedules into the database
-            for (Schedule schedule : scheduleList) {
-                databaseHelper.insertBusSchedule(busNumber, schedule.getDay(), schedule.getTripTime(), schedule.getStartLocation(), schedule.getEndLocation());
+            if (scheduleList != null) {
+                for (Schedule schedule : scheduleList) {
+                    databaseHelper.insertBusSchedule(
+                            busNumber,
+                            schedule.getDay(),
+                            schedule.getTripTime(),
+                            schedule.getStartLocation(),
+                            schedule.getEndLocation()
+                    );
+                }
             }
+
+            // Finish the activity after successful registration
             finish();
         } else {
             Toast.makeText(this, "Bus registration failed", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     public void showTimePicker(View view) {
         final Calendar calendar = Calendar.getInstance();

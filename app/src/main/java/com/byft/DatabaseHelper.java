@@ -9,8 +9,11 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -601,21 +604,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
 
-    public Cursor getAvailableBuses(String startLocation) {
+    public Cursor getAvailableBuses(String startLocation, String day) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
+
         try {
+            // Get the current time and add 2 hours
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+            Date now = new Date();
+            String currentTime = timeFormat.format(now);
+
+            // Calculate the time 2 hours later
+            Date twoHoursLater = new Date(now.getTime() + (2 * 60 * 60 * 1000));
+            String timePlusTwoHours = timeFormat.format(twoHoursLater);
+
+            // SQL query with time filtering
             String query = "SELECT " + COLUMN_SCHEDULE_BUS_NUMBER + ", " +
                     COLUMN_TRIP_TIME + ", " +
                     COLUMN_END_LOCATION +
                     " FROM " + TABLE_BUS_SCHEDULE +
-                    " WHERE " + COLUMN_START_LOCATION + " = ?";
-            cursor = db.rawQuery(query, new String[]{startLocation});
+                    " WHERE " + COLUMN_START_LOCATION + " = ? AND " +
+                    COLUMN_DAY + " = ? AND " +
+                    "strftime('%H:%M', " + COLUMN_TRIP_TIME + ") BETWEEN ? AND ?";
+
+            // Execute query with parameters
+            cursor = db.rawQuery(query, new String[]{startLocation, day, currentTime, timePlusTwoHours});
         } catch (Exception e) {
             Log.e("DatabaseHelper", "Error fetching available buses: " + e.getMessage());
         }
         return cursor;
     }
+
 
 
 
