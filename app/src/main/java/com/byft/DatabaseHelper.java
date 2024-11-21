@@ -15,13 +15,12 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "UserDatabase.db";
-    private static final int DATABASE_VERSION = 10; // Incremented version
+    private static final int DATABASE_VERSION = 9; // Incremented version
     private static final String TABLE_USERS = "users";
     private static final String TABLE_BUS = "Bus";
     private static final String TABLE_BUS_SCHEDULE = "BusSchedule";
     private static final String TABLE_BOOKINGS = "Bookings";
     private static final String TABLE_RATINGS = "Ratings"; // New table
-    private static final String TABLE_CANCEL_BOOKINGS = "CancelBookings";
 
     // Columns for users table
     private static final String COLUMN_ID = "id";
@@ -60,14 +59,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_RATING_USER_EMAIL = "userEmail";
     private static final String COLUMN_RATING_BUS_NUMBER = "busNumber";
     private static final String COLUMN_RATING_VALUE = "ratingValue";
-
-    // Columns for cancel bookings table
-    private static final String COLUMN_CANCEL_ID = "cancelID";
-    private static final String COLUMN_CANCEL_BOOKING_ID = "bookingID";
-    private static final String COLUMN_CANCEL_BUS_NUMBER = "busNumber";
-    private static final String COLUMN_CANCEL_SEAT_NUMBER = "seatNumber";
-    private static final String COLUMN_CANCEL_USER_EMAIL = "userEmail";
-    private static final String COLUMN_CANCEL_STATE = "state";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -121,15 +112,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_RATING_BUS_NUMBER + " VARCHAR(20), " +
                 COLUMN_RATING_VALUE + " REAL)";
         db.execSQL(createRatingsTable);
-
-        String createCancelBookingsTable = "CREATE TABLE " + TABLE_CANCEL_BOOKINGS + " (" +
-                COLUMN_CANCEL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_CANCEL_BOOKING_ID + " INTEGER, " +
-                COLUMN_CANCEL_BUS_NUMBER + " VARCHAR(20), " +
-                COLUMN_CANCEL_SEAT_NUMBER + " INTEGER, " +
-                COLUMN_CANCEL_STATE + " TEXT, " +
-                COLUMN_CANCEL_USER_EMAIL + " TEXT)";
-        db.execSQL(createCancelBookingsTable);
 
     }
 
@@ -186,16 +168,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (!isColumnExists(db, TABLE_BUS, COLUMN_DRIVER)) {
                 db.execSQL("ALTER TABLE " + TABLE_BUS + " ADD COLUMN " + COLUMN_DRIVER + " TEXT");
             }
-        }
-        if (oldVersion < 10) {
-            String createCancelBookingsTable = "CREATE TABLE " + TABLE_CANCEL_BOOKINGS + " (" +
-                    COLUMN_CANCEL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    COLUMN_CANCEL_BOOKING_ID + " INTEGER, " +
-                    COLUMN_CANCEL_BUS_NUMBER + " VARCHAR(20), " +
-                    COLUMN_CANCEL_SEAT_NUMBER + " INTEGER, " +
-                    COLUMN_CANCEL_STATE + " TEXT, " +
-                    COLUMN_CANCEL_USER_EMAIL + " TEXT)";
-            db.execSQL(createCancelBookingsTable);
         }
     }
 
@@ -309,18 +281,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<String> getDrivers() {
         List<String> drivers = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT " + COLUMN_NAME + ", " + COLUMN_EMAIL + " FROM " + TABLE_USERS + " WHERE " + COLUMN_USER_TYPE + " = ?", new String[]{"Bus driver"});
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_NAME + " FROM " + TABLE_USERS + " WHERE " + COLUMN_USER_TYPE + " = ?", new String[]{"Bus driver"});
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                String name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME));
-                String email = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EMAIL));
-                drivers.add(name + " (" + email + ")");
+                drivers.add(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME)));
             }
             cursor.close();
         }
         db.close();
-
         return drivers;
     }
 
@@ -610,10 +579,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Booking> getBookingsForUser(String userId) {
         List<Booking> bookings = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_BOOKINGS + " b " +
-                "WHERE b." + COLUMN_BOOKING_USER_ID + " = ? " +
-                "AND b." + COLUMN_BOOKING_ID + " NOT IN (SELECT " + COLUMN_CANCEL_BOOKING_ID + " FROM " + TABLE_CANCEL_BOOKINGS + ")";
-        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_USER_ID + "=?", new String[]{String.valueOf(userId)});
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_ID));
@@ -627,6 +593,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return bookings;
     }
+    public void deleteBooking(int bookingId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_BOOKINGS, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
+        db.close();
+    }
+
+
+
     public Cursor getAvailableBuses(String startLocation) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -642,75 +616,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return cursor;
     }
-    public boolean insertCancelBooking(int bookingId, String busNumber, int seatNumber, String userEmail) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_CANCEL_BOOKING_ID, bookingId);
-        values.put(COLUMN_CANCEL_BUS_NUMBER, busNumber);
-        values.put(COLUMN_CANCEL_SEAT_NUMBER, seatNumber);
-        values.put(COLUMN_CANCEL_STATE, "pending");
-        values.put(COLUMN_CANCEL_USER_EMAIL, userEmail);
 
-        long result = db.insert(TABLE_CANCEL_BOOKINGS, null, values);
-        db.close();
-        Log.d("DatabaseHelper",
-                "CancelBooking Saved: " + bookingId + " for bus: " + busNumber + " by user: " + userEmail + " with state: pending");
-        return result != -1;
-    }
-    public List<CancelRequest> getCancelRequestsForDriver(String driverEmail) {
-        List<CancelRequest> cancelRequests = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_CANCEL_BOOKINGS + " cb " +
-                "JOIN " + TABLE_BUS + " b ON cb." + COLUMN_CANCEL_BUS_NUMBER + " = b." + COLUMN_BUS_NUMBER + " " +
-                "WHERE b." + COLUMN_DRIVER + " = ? AND cb." + COLUMN_CANCEL_STATE + " = 'pending'";
-        Cursor cursor = db.rawQuery(query, new String[]{driverEmail});
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                int cancelId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CANCEL_ID));
-                int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CANCEL_BOOKING_ID));
-                String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CANCEL_BUS_NUMBER));
-                int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CANCEL_SEAT_NUMBER));
-                String state = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CANCEL_STATE));
-                String userEmail = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CANCEL_USER_EMAIL));
-                cancelRequests.add(new CancelRequest(cancelId, bookingId, busNumber, seatNumber, state, userEmail));
-            }
-            cursor.close();
-        }
-        db.close();
-        return cancelRequests;
-    }
-    public boolean acceptCancelRequest(int cancelId, int bookingId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.beginTransaction();
-        try {
-            // Delete the booking
-            int rowsDeleted = db.delete(TABLE_BOOKINGS, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
-            if (rowsDeleted == 0) {
-                db.endTransaction();
-                return false;
-            }
 
-            // Update the cancel request state
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_CANCEL_STATE, "completed");
-            int rowsUpdated = db.update(TABLE_CANCEL_BOOKINGS, values, COLUMN_CANCEL_ID + "=?", new String[]{String.valueOf(cancelId)});
-            if (rowsUpdated == 0) {
-                db.endTransaction();
-                return false;
-            }
 
-            db.setTransactionSuccessful();
-            return true;
-        } finally {
-            db.endTransaction();
-            db.close();
-        }
-    }
 
-    public boolean rejectCancelRequest(int cancelId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        int rowsDeleted = db.delete(TABLE_CANCEL_BOOKINGS, COLUMN_CANCEL_ID + "=?", new String[]{String.valueOf(cancelId)});
-        db.close();
-        return rowsDeleted > 0;
-    }
+
 }

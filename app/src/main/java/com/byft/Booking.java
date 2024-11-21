@@ -6,13 +6,15 @@ public class Booking {
     private String busNumber;
     private int seatNumber;
     private String userId;
+    private String route; // New attribute
 
-    public Booking(int bookingId, int scheduleId, String busNumber, int seatNumber, String userId) {
+    public Booking(int bookingId, int scheduleId, String busNumber, int seatNumber, String userId, String route) {
         this.bookingId = bookingId;
         this.scheduleId = scheduleId;
         this.busNumber = busNumber;
         this.seatNumber = seatNumber;
         this.userId = userId;
+        this.route = route; // Initialize new attribute
     }
 
     public int getBookingId() {
@@ -35,8 +37,12 @@ public class Booking {
         return userId;
     }
 
+    public String getRoute() {
+        return route; // Getter for new attribute
+    }
+
     @Override
     public String toString() {
-        return "Booking ID: " + bookingId + ", Bus Number: " + busNumber + ", Seat Number: " + seatNumber;
+        return "Booking ID: " + bookingId + ", Bus Number: " + busNumber + ", Seat Number: " + seatNumber + ", Route: " + route;
     }
 }
