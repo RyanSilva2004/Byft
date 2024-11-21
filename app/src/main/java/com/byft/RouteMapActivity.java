@@ -15,6 +15,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
@@ -149,9 +150,24 @@ public class RouteMapActivity extends AppCompatActivity implements OnMapReadyCal
 
                             runOnUiThread(() -> {
                                 mMap.clear();
+
+                                // Add markers for the start and end locations
                                 mMap.addMarker(new MarkerOptions().position(origin).title("Start"));
                                 mMap.addMarker(new MarkerOptions().position(destination).title("End"));
+
+                                // Add the route polyline to the map
                                 mMap.addPolyline(new PolylineOptions().addAll(decodedPath).color(Color.BLUE).width(10));
+
+                                // Create LatLngBounds to include all route points
+                                LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+                                for (LatLng point : decodedPath) {
+                                    boundsBuilder.include(point);
+                                }
+                                LatLngBounds bounds = boundsBuilder.build();
+
+                                // Adjust the camera to fit the route
+                                int padding = 100; // Padding around the route (in pixels)
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
                             });
                         } else {
                             runOnUiThread(() -> Toast.makeText(RouteMapActivity.this, "No route found.", Toast.LENGTH_SHORT).show());
