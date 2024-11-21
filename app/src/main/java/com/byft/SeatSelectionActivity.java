@@ -149,6 +149,7 @@ public class SeatSelectionActivity extends AppCompatActivity {
 
             if (success) {
                 Toast.makeText(this, "Seat booked successfully!", Toast.LENGTH_SHORT).show();
+                EmailUtil.sendEmail(email, "Seat Booked", "Your seat has been booked successfully. Bus Number: " + busNumber + ", Seat Number: " + selectedSeat);
                 finish();
             } else {
                 Toast.makeText(this, "Failed to book seat. Please try again.", Toast.LENGTH_SHORT).show();
