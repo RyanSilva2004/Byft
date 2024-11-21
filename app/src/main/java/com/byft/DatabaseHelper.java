@@ -15,7 +15,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "UserDatabase.db";
-    private static final int DATABASE_VERSION = 8; // Incremented version
+    private static final int DATABASE_VERSION = 9; // Incremented version
     private static final String TABLE_USERS = "users";
     private static final String TABLE_BUS = "Bus";
     private static final String TABLE_BUS_SCHEDULE = "BusSchedule";
@@ -489,6 +489,114 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return averageRating;
         }
         return 0; // Default rating value if no ratings found
+    }
+    public List<Booking> getUserBookings(int userId) {
+        List<Booking> bookings = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_USER_ID + "=?", new String[]{String.valueOf(userId)});
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_ID));
+                int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
+                String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
+                int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
+                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId));
+            }
+            cursor.close();
+        }
+        db.close();
+        return bookings;
+    }
+    public Booking getBookingById(int bookingId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
+        if (cursor != null && cursor.moveToFirst()) {
+            int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
+            String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
+            int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
+            int userId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_USER_ID));
+            cursor.close();
+            return new Booking(bookingId, scheduleId, busNumber, seatNumber, userId);
+        }
+        return null;
+    }
+    public List<Integer> getBookedSeatsForSchedule(int scheduleId) {
+        List<Integer> bookedSeats = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_SEAT_NUMBER + " FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_SCHEDULE_ID + "=?", new String[]{String.valueOf(scheduleId)});
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
+                bookedSeats.add(seatNumber);
+            }
+            cursor.close();
+        }
+        db.close();
+        return bookedSeats;
+    }
+    public int getBusTotalSeats(String busNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_BUS_SEATS + " FROM " + TABLE_BUS + " WHERE " + COLUMN_BUS_NUMBER + "=?", new String[]{busNumber});
+        if (cursor != null && cursor.moveToFirst()) {
+            int totalSeats = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BUS_SEATS));
+            cursor.close();
+            return totalSeats;
+        }
+        return 0; // Default value if no seats found
+    }
+    public void updateSeatNumber(int bookingId, int newSeatNumber) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_SEAT_NUMBER, newSeatNumber);
+        db.update(TABLE_BOOKINGS, values, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
+        db.close();
+    }
+    public List<Booking> getBookingsForUser(int userId) {
+        List<Booking> bookings = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_USER_ID + "=?", new String[]{String.valueOf(userId)});
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_ID));
+                int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
+                String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
+                int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
+                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId));
+            }
+            cursor.close();
+        }
+        db.close();
+        return bookings;
+    }
+    public void deleteBooking(int bookingId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_BOOKINGS, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
+        db.close();
+    }
+    public void updateBookingState(int bookingId, String newState) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("state", newState); // Assuming there is a column named "state" in the bookings table
+        db.update(TABLE_BOOKINGS, values, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
+        db.close();
+    }
+    public List<Booking> getPendingCancelRequests() {
+        List<Booking> bookings = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE state = ?", new String[]{"pending"});
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_ID));
+                int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
+                String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
+                int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
+                int userId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_USER_ID));
+                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId));
+            }
+            cursor.close();
+        }
+        db.close();
+        return bookings;
     }
 
 }

@@ -25,6 +25,7 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
     private DatabaseHelper databaseHelper;
     private List<String> busList;
     private BusListAdapter busListAdapter;
+    private int userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,9 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
         busList = new ArrayList<>();
         busListAdapter = new BusListAdapter(this, busList);
         busListView.setAdapter(busListAdapter);
+
+        // Get user ID from intent
+        userId = getIntent().getIntExtra("userId", -1);
 
         searchBusesButton.setOnClickListener(new View.OnClickListener() {
             @Override

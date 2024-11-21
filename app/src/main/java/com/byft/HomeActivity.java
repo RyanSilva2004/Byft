@@ -62,6 +62,7 @@ public class HomeActivity extends AppCompatActivity {
         // Driver
         viewBusDetailsButton = findViewById(R.id.view_bus_details_button);
         tripsButton = findViewById(R.id.trips_button);
+        requestCancelBookingButton = findViewById(R.id.cancel_bookings_button);
 
         // Bus Owner
         registerBusButton = findViewById(R.id.register_bus_button);
@@ -121,6 +122,22 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(HomeActivity.this, RideHistoryActivity.class);
+                intent.putExtra("email", email);
+                startActivity(intent);
+            }
+        });
+        requestSwapSeatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, SeatSwapActivity.class);
+                intent.putExtra("email", email);
+                startActivity(intent);
+            }
+        });
+        requestCancelBookingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, CancelBookingActivity.class);
                 intent.putExtra("email", email);
                 startActivity(intent);
             }
