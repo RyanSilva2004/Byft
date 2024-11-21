@@ -1,5 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/home"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
@@ -48,24 +49,33 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Map Preview Area (Placeholder) -->
+    <!-- Map View with Spinner -->
     <FrameLayout
         android:id="@+id/map_preview"
         android:layout_width="match_parent"
         android:layout_height="250dp"
         android:layout_below="@id/profile_header"
-        android:layout_marginTop="16dp"
-        android:background="#E0E0E0"
-        android:gravity="center">
+        android:layout_marginTop="16dp">
 
-        <TextView
+        <!-- MapView -->
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Spinner -->
+        <Spinner
+            android:id="@+id/terminal_spinner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Map Preview"
-            android:textSize="18sp"
-            android:textColor="#9E9E9E"
-            android:gravity="center" />
+            android:layout_margin="16dp"
+            android:background="@drawable/spinner_background"
+            android:padding="8dp"
+            android:spinnerMode="dropdown"
+            android:layout_gravity="top|start" />
     </FrameLayout>
+
+
 
     <!-- First Row of Navigation Buttons (Book a Bus, Ride History, Support) -->
     <LinearLayout

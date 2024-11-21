@@ -112,6 +112,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_RATING_BUS_NUMBER + " VARCHAR(20), " +
                 COLUMN_RATING_VALUE + " REAL)";
         db.execSQL(createRatingsTable);
+
     }
 
     @Override
@@ -164,8 +165,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.execSQL(createRatingsTable);
         }
         if (oldVersion < 9) {
-            db.execSQL("ALTER TABLE " + TABLE_BUS + " ADD COLUMN " + COLUMN_DRIVER + " TEXT");
+            if (!isColumnExists(db, TABLE_BUS, COLUMN_DRIVER)) {
+                db.execSQL("ALTER TABLE " + TABLE_BUS + " ADD COLUMN " + COLUMN_DRIVER + " TEXT");
+            }
         }
+    }
+
+    private boolean isColumnExists(SQLiteDatabase db, String tableName, String columnName) {
+        Cursor cursor = null;
+        try {
+            // Query the database to check for the column
+            cursor = db.rawQuery("PRAGMA table_info(" + tableName + ")", null);
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    String existingColumn = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                    if (columnName.equals(existingColumn)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error checking if column exists: " + e.getMessage());
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return false;
     }
 
     public boolean insertUser(String name, String email, String phone, String password, @Nullable byte[] profileImage, String userType) {
@@ -478,7 +504,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return exists;
     }
-
     public float getAverageRating(String busNumber) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT AVG(" + COLUMN_RATING_VALUE + ") FROM " + TABLE_RATINGS + " WHERE "
@@ -598,5 +623,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return bookings;
     }
+
+
+    public Cursor getAvailableBuses(String startLocation) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        try {
+            String query = "SELECT " + COLUMN_SCHEDULE_BUS_NUMBER + ", " +
+                    COLUMN_TRIP_TIME + ", " +
+                    COLUMN_END_LOCATION +
+                    " FROM " + TABLE_BUS_SCHEDULE +
+                    " WHERE " + COLUMN_START_LOCATION + " = ?";
+            cursor = db.rawQuery(query, new String[]{startLocation});
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error fetching available buses: " + e.getMessage());
+        }
+        return cursor;
+    }
+
+
+
+
 
 }
