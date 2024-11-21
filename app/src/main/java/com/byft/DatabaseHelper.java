@@ -446,15 +446,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Booking> getBookingsByUserId(String userId) {
         List<Booking> bookings = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_BOOKINGS + " WHERE " + COLUMN_BOOKING_USER_ID + "=?",
-                new String[] { userId });
+        String query = "SELECT b." + COLUMN_BOOKING_ID + ", b." + COLUMN_BOOKING_SCHEDULE_ID + ", b." + COLUMN_BOOKING_BUS_NUMBER +
+                ", b." + COLUMN_SEAT_NUMBER + ", s." + COLUMN_START_LOCATION + " || ' to ' || s." + COLUMN_END_LOCATION + " AS route " +
+                "FROM " + TABLE_BOOKINGS + " b " +
+                "JOIN " + TABLE_BUS_SCHEDULE + " s ON b." + COLUMN_BOOKING_SCHEDULE_ID + " = s." + COLUMN_SCHEDULE_ID +
+                " WHERE b." + COLUMN_BOOKING_USER_ID + "=?";
+        Cursor cursor = db.rawQuery(query, new String[] { userId });
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_ID));
                 int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
                 String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
                 int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
-                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId));
+                String route = cursor.getString(cursor.getColumnIndexOrThrow("route"));
+                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId, route));
             }
             cursor.close();
         }
@@ -528,7 +533,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
                 String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
                 int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
-                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId));
+                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId,null));
             }
             cursor.close();
         }
@@ -544,7 +549,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
             String userId = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_USER_ID));
             cursor.close();
-            return new Booking(bookingId, scheduleId, busNumber, seatNumber, userId);
+            return new Booking(bookingId, scheduleId, busNumber, seatNumber, userId, null);
         }
         return null;
     }
@@ -589,7 +594,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 int scheduleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_SCHEDULE_ID));
                 String busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_BUS_NUMBER));
                 int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEAT_NUMBER));
-                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId));
+                bookings.add(new Booking(bookingId, scheduleId, busNumber, seatNumber, userId, null));
             }
             cursor.close();
         }
