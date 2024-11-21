@@ -20,6 +20,7 @@ public class RideHistoryActivity extends AppCompatActivity {
         rideHistoryRecyclerView = findViewById(R.id.ride_history_recycler_view);
         rideHistoryRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+
         // Get email from intent
         String email = getIntent().getStringExtra("email");
         if (email != null) {

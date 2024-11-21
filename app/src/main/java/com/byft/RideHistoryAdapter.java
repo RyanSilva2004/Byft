@@ -28,10 +28,15 @@ public class RideHistoryAdapter extends RecyclerView.Adapter<RideHistoryAdapter.
         return new ViewHolder(view);
     }
 
+
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Booking booking = bookings.get(position);
-        holder.rideDetails.setText(booking.toString());
+        holder.bookingId.setText("Booking ID: " + booking.getBookingId());
+        holder.scheduleId.setText("Schedule ID: " + booking.getScheduleId());
+        holder.busNumber.setText("Bus Number: " + booking.getBusNumber());
+        holder.seatNumber.setText("Seat Number: " + booking.getSeatNumber());
+        holder.route.setText("Route: " + booking.getRoute());
 
         // Retrieve and set the previous rating
         float previousRating = databaseHelper.getRating(userEmail, booking.getBusNumber());
@@ -48,18 +53,28 @@ public class RideHistoryAdapter extends RecyclerView.Adapter<RideHistoryAdapter.
         });
     }
 
+
+
     @Override
     public int getItemCount() {
         return bookings.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView rideDetails;
+        public TextView bookingId;
+        public TextView scheduleId;
+        public TextView busNumber;
+        public TextView seatNumber;
+        public TextView route;
         public RatingBar rideRating;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            rideDetails = itemView.findViewById(R.id.ride_details);
+            bookingId = itemView.findViewById(R.id.booking_id);
+            scheduleId = itemView.findViewById(R.id.schedule_id);
+            busNumber = itemView.findViewById(R.id.bus_number);
+            seatNumber = itemView.findViewById(R.id.seat_number);
+            route = itemView.findViewById(R.id.route);
             rideRating = itemView.findViewById(R.id.ride_rating);
         }
     }

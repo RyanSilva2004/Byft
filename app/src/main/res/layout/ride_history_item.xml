@@ -1,22 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:cardview="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:layout_margin="8dp"
+    cardview:cardCornerRadius="8dp"
+    cardview:cardElevation="4dp"
+    cardview:cardBackgroundColor="@android:color/white">
 
-    <TextView
-        android:id="@+id/ride_details"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ride Details"
-        android:textSize="16sp"
-        android:paddingBottom="8dp" />
+        android:orientation="horizontal"
+        android:padding="8dp">
 
-    <RatingBar
-        android:id="@+id/ride_rating"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:numStars="5"
-        android:stepSize="1.0" />
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/booking_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Booking ID"
+                android:textSize="16sp"
+                android:paddingBottom="4dp" />
+
+            <TextView
+                android:id="@+id/schedule_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Schedule ID"
+                android:textSize="16sp"
+                android:paddingBottom="4dp" />
+
+            <TextView
+                android:id="@+id/bus_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bus Number"
+                android:textSize="16sp"
+                android:paddingBottom="4dp" />
+
+            <TextView
+                android:id="@+id/seat_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Seat Number"
+                android:textSize="16sp"
+                android:paddingBottom="4dp" />
+
+            <TextView
+                android:id="@+id/route"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Route"
+                android:textSize="16sp"
+                android:paddingBottom="4dp" />
+        </LinearLayout>
+
+        <RatingBar
+            android:id="@+id/ride_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:numStars="5"
+            android:stepSize="1.0"
+            android:scaleX="0.6"
+            android:scaleY="0.6"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

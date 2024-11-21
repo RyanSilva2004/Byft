@@ -55,7 +55,7 @@ public class Passenger_BookRideActivity extends AppCompatActivity {
         tripDateSpinner.setAdapter(tripDateAdapter);
 
         busList = new ArrayList<>();
-        busListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, busList);
+        busListAdapter = new BusListAdapter(this, busList);
         busListView.setAdapter(busListAdapter);
 
         searchBusesButton.setOnClickListener(new View.OnClickListener() {
