@@ -42,14 +42,14 @@
         <activity android:name=".RouteMapActivity" android:exported="true"/>
         <activity android:name=".Passenger_BookRideActivity" android:exported="true"/>
         <activity android:name=".SeatSelectionActivity" android:exported="true"/>
-        <activity android:name=".Driver_ViewBusDetailsActivity" android:exported="true"/>
+        <activity android:name=".Driver_ViewTripDetailsActivity" android:exported="true"/>
         <activity android:name=".RideHistoryActivity" android:exported="true"/>
         <activity android:name=".SeatSwapActivity" android:exported="true"/>
         <activity android:name=".BookingsListAdapter" android:exported="true"/>
         <activity android:name=".SeatLayoutActivity" android:exported="true"/>
         <activity android:name=".CancelBookingActivity" android:exported="true"/>
         <activity android:name=".CancelRequestsActivity" android:exported="true"/>
-
+        <activity android:name=".Driver_ViewBusDetailsActivity" android:exported="true"/>
 
 
 

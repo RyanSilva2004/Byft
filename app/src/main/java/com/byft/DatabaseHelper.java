@@ -736,4 +736,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return rowsDeleted > 0;
     }
+
+    public String getBusNumberForDriver(String driverEmail) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String busNumber = null;
+        Cursor cursor = db.query(TABLE_BUS, new String[]{COLUMN_BUS_NUMBER}, COLUMN_DRIVER + "=?", new String[]{driverEmail}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            busNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BUS_NUMBER));
+            cursor.close();
+        }
+        db.close();
+        return busNumber;
+    }
+    public String getOtherBusDetails(String busNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        StringBuilder otherDetails = new StringBuilder();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_DAY + ", " + COLUMN_TRIP_TIME + ", " + COLUMN_START_LOCATION + ", " + COLUMN_END_LOCATION +
+                " FROM " + TABLE_BUS_SCHEDULE +
+                " WHERE " + COLUMN_SCHEDULE_BUS_NUMBER + " = ?", new String[]{busNumber});
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String day = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DAY));
+                String tripTime = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TRIP_TIME));
+                String startLocation = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_START_LOCATION));
+                String endLocation = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_END_LOCATION));
+                otherDetails.append("Day: ").append(day)
+                        .append(", Time: ").append(tripTime)
+                        .append(", Route: ").append(startLocation).append(" to ").append(endLocation)
+                        .append("\n");
+            }
+            cursor.close();
+        }
+        db.close();
+        return otherDetails.toString();
+    }
 }

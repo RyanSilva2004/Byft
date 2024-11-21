@@ -94,6 +94,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         requestSwapSeatButton = findViewById(R.id.swap_seats_button);
         CheckCancel = findViewById(R.id.check_cancel_button);
 
+
         setupHighwayTerminals();
         setupSpinner();
 
@@ -254,6 +255,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         tripsButton.setVisibility(View.GONE);
         CheckCancel.setVisibility(View.GONE);
 
+
         // Adjust visibility based on role
         if ("PASSENGER".equalsIgnoreCase(role)) {
             bookRideButton.setVisibility(View.VISIBLE);
@@ -296,6 +298,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         viewBusDetailsButton.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, Driver_ViewBusDetailsActivity.class);
+            intent.putExtra("email", email);
+            startActivity(intent);
+        });
+
+        tripsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, Driver_ViewTripDetailsActivity.class);
             intent.putExtra("email", email);
             startActivity(intent);
         });
