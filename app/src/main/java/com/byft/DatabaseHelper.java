@@ -18,13 +18,14 @@ import java.util.Locale;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "UserDatabase.db";
-    private static final int DATABASE_VERSION = 10; // Incremented version
+    private static final int DATABASE_VERSION = 11; // Incremented version
     private static final String TABLE_USERS = "users";
     private static final String TABLE_BUS = "Bus";
     private static final String TABLE_BUS_SCHEDULE = "BusSchedule";
     private static final String TABLE_BOOKINGS = "Bookings";
     private static final String TABLE_RATINGS = "Ratings"; // New table
     private static final String TABLE_CANCEL_BOOKINGS = "CancelBookings";
+    private static final String TABLE_SEAT_SWAP_REQUESTS = "SeatSwapRequests";
 
     // Columns for users table
     private static final String COLUMN_ID = "id";
@@ -71,6 +72,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_CANCEL_SEAT_NUMBER = "seatNumber";
     private static final String COLUMN_CANCEL_USER_EMAIL = "userEmail";
     private static final String COLUMN_CANCEL_STATE = "state";
+
+    private static final String COLUMN_REQUEST_ID = "requestId";
+    private static final String COLUMN_FROM_BOOKING_ID = "fromBookingId";
+    private static final String COLUMN_TO_BOOKING_ID = "toBookingId";
+    private static final String COLUMN_STATUS = "status";
+
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -133,6 +140,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_CANCEL_STATE + " TEXT, " +
                 COLUMN_CANCEL_USER_EMAIL + " TEXT)";
         db.execSQL(createCancelBookingsTable);
+
+        String createSeatSwapRequestsTable = "CREATE TABLE " + TABLE_SEAT_SWAP_REQUESTS + " (" +
+                COLUMN_REQUEST_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_FROM_BOOKING_ID + " INTEGER, " +
+                COLUMN_TO_BOOKING_ID + " INTEGER, " +
+                COLUMN_STATUS + " TEXT)";
+        db.execSQL(createSeatSwapRequestsTable);
+
 
     }
 
@@ -199,6 +214,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_CANCEL_STATE + " TEXT, " +
                     COLUMN_CANCEL_USER_EMAIL + " TEXT)";
             db.execSQL(createCancelBookingsTable);
+        }
+        if (oldVersion < 11) {
+            String createSeatSwapRequestsTable = "CREATE TABLE " + TABLE_SEAT_SWAP_REQUESTS + " (" +
+                    COLUMN_REQUEST_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_FROM_BOOKING_ID + " INTEGER, " +
+                    COLUMN_TO_BOOKING_ID + " INTEGER, " +
+                    COLUMN_STATUS + " TEXT)";
+            db.execSQL(createSeatSwapRequestsTable);
         }
     }
 
@@ -608,13 +631,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return 0; // Default value if no seats found
     }
-    public void updateSeatNumber(int bookingId, int newSeatNumber) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_SEAT_NUMBER, newSeatNumber);
-        db.update(TABLE_BOOKINGS, values, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
-        db.close();
-    }
+
     public List<Booking> getBookingsForUser(String userId) {
         List<Booking> bookings = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -770,5 +787,104 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         db.close();
         return otherDetails.toString();
+    }
+
+    public void insertSeatSwapRequest(int fromBookingId, int toBookingId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("fromBookingId", fromBookingId);
+        values.put("toBookingId", toBookingId);
+        values.put("status", "pending");
+        db.insert("SeatSwapRequests", null, values);
+        db.close();
+    }
+
+    public List<SwapRequest> getSwapRequestsForUser(String userId) {
+        List<SwapRequest> swapRequests = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM SeatSwapRequests WHERE toBookingId IN (SELECT bookingID FROM Bookings WHERE userID=?) AND status='pending'";
+        Cursor cursor = db.rawQuery(query, new String[]{userId});
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int requestId = cursor.getInt(cursor.getColumnIndexOrThrow("requestId"));
+                int fromBookingId = cursor.getInt(cursor.getColumnIndexOrThrow("fromBookingId"));
+                int toBookingId = cursor.getInt(cursor.getColumnIndexOrThrow("toBookingId"));
+                swapRequests.add(new SwapRequest(requestId, fromBookingId, toBookingId));
+            }
+            cursor.close();
+        }
+        db.close();
+        return swapRequests;
+    }
+
+    public void acceptSwapRequest(int requestId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            Cursor cursor = db.rawQuery("SELECT fromBookingId, toBookingId FROM SeatSwapRequests WHERE requestId=?", new String[]{String.valueOf(requestId)});
+            if (cursor != null && cursor.moveToFirst()) {
+                int fromBookingId = cursor.getInt(cursor.getColumnIndexOrThrow("fromBookingId"));
+                int toBookingId = cursor.getInt(cursor.getColumnIndexOrThrow("toBookingId"));
+                cursor.close();
+
+                // Swap the seat numbers
+                int fromSeatNumber = getSeatNumberByBookingId(fromBookingId);
+                int toSeatNumber = getSeatNumberByBookingId(toBookingId);
+                updateSeatNumber(fromBookingId, toSeatNumber);
+                updateSeatNumber(toBookingId, fromSeatNumber);
+
+                // Update the request status
+                ContentValues values = new ContentValues();
+                values.put("status", "accepted");
+                db.update("SeatSwapRequests", values, "requestId=?", new String[]{String.valueOf(requestId)});
+
+                db.setTransactionSuccessful();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+
+    public void rejectSwapRequest(int requestId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("status", "rejected");
+        db.update("SeatSwapRequests", values, "requestId=?", new String[]{String.valueOf(requestId)});
+        db.close();
+    }
+
+    public void updateSeatNumber(int bookingId, int newSeatNumber) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_SEAT_NUMBER, newSeatNumber);
+        db.update(TABLE_BOOKINGS, values, COLUMN_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)});
+    }
+
+
+
+    public int getBookingIdBySeatNumber(int scheduleId, int seatNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_BOOKINGS, new String[]{COLUMN_BOOKING_ID},
+                COLUMN_BOOKING_SCHEDULE_ID + "=? AND " + COLUMN_SEAT_NUMBER + "=?",
+                new String[]{String.valueOf(scheduleId), String.valueOf(seatNumber)}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            int bookingId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BOOKING_ID));
+            cursor.close();
+            return bookingId;
+        }
+        return -1; // Return -1 if booking not found
+    }
+    public int getSeatNumberByBookingId(int bookingId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT seatNumber FROM Bookings WHERE bookingID=?", new String[]{String.valueOf(bookingId)});
+        if (cursor != null && cursor.moveToFirst()) {
+            int seatNumber = cursor.getInt(cursor.getColumnIndexOrThrow("seatNumber"));
+            cursor.close();
+            return seatNumber;
+        }
+        return -1; // Return -1 if seat number not found
     }
 }

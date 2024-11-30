@@ -50,6 +50,7 @@
         <activity android:name=".CancelBookingActivity" android:exported="true"/>
         <activity android:name=".CancelRequestsActivity" android:exported="true"/>
         <activity android:name=".Driver_ViewBusDetailsActivity" android:exported="true"/>
+        <activity android:name=".SwapRequestsActivity" android:exported="true"/>
 
 
 

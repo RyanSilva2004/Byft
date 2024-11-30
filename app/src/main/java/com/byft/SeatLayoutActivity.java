@@ -55,7 +55,12 @@ public class SeatLayoutActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (selectedSeatButton != null) {
                     int newSeatNumber = Integer.parseInt(selectedSeatButton.getText().toString());
-                    updateSeatNumberInDatabase(bookingId, newSeatNumber);
+                    if (bookedSeats.contains(newSeatNumber)) {
+                        int toBookingId = databaseHelper.getBookingIdBySeatNumber(scheduleId, newSeatNumber);
+                        sendSwapRequest(bookingId, toBookingId);
+                    } else {
+                        updateSeatNumberInDatabase(bookingId, newSeatNumber);
+                    }
                 } else {
                     Toast.makeText(SeatLayoutActivity.this, "Please select a seat", Toast.LENGTH_SHORT).show();
                 }
@@ -94,8 +99,8 @@ public class SeatLayoutActivity extends AppCompatActivity {
     }
 
     private void loadSeatLayout(String busNumber) {
-        int totalSeats = databaseHelper.getBusTotalSeats(busNumber); // Get total seats from database
-        int columnCount = 4; // Maximum 4 seats per row
+        int totalSeats = databaseHelper.getBusTotalSeats(busNumber);
+        int columnCount = 4;
         int rowCount = (int) Math.ceil((double) totalSeats / columnCount);
 
         seatGrid.setRowCount(rowCount);
@@ -110,11 +115,9 @@ public class SeatLayoutActivity extends AppCompatActivity {
             params.rowSpec = GridLayout.spec(i / columnCount);
             seatButton.setLayoutParams(params);
 
-            // Store the original color of the seat button
             ColorStateList originalColor = seatButton.getBackgroundTintList();
             if (bookedSeats.contains(i + 1) && i + 1 != userBookedSeat) {
                 seatButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(android.R.color.darker_gray)));
-                seatButton.setEnabled(false);
             } else if (i + 1 == userBookedSeat) {
                 seatButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(android.R.color.holo_blue_light)));
             }
@@ -123,16 +126,13 @@ public class SeatLayoutActivity extends AppCompatActivity {
             seatButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // Reset the background color of the previously selected seat
                     if (selectedSeatButton != null) {
                         selectedSeatButton.setBackgroundTintList(originalColors.get(selectedSeatButton));
                     }
 
-                    // Highlight the newly selected seat
                     seatButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(android.R.color.holo_green_light)));
                     selectedSeatButton = seatButton;
 
-                    // Show the book button
                     bookButton.setVisibility(View.VISIBLE);
                 }
             });
@@ -155,5 +155,10 @@ public class SeatLayoutActivity extends AppCompatActivity {
         });
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    private void sendSwapRequest(int fromBookingId, int toBookingId) {
+        databaseHelper.insertSeatSwapRequest(fromBookingId, toBookingId);
+        Toast.makeText(this, "Swap request sent", Toast.LENGTH_SHORT).show();
     }
 }
